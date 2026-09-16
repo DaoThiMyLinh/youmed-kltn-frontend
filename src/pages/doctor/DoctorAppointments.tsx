@@ -76,7 +76,7 @@ const DoctorAppointments = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 text-slate-700 font-medium">
-                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </div>
                     </div>
                   </div>
@@ -98,10 +98,10 @@ const DoctorAppointments = () => {
                     <Badge variant={getStatusBadge(apt.status) as any} className="px-3 py-1 text-xs uppercase tracking-wide">
                       {t(`status.${apt.status}`)}
                     </Badge>
-                    <Button 
-                      rightIcon={<FiArrowRight />} 
-                      onClick={() => navigate(`/consultation/${apt.id}`)}
-                    >
+                      <Button 
+                        rightIcon={<FiArrowRight />} 
+                        onClick={() => navigate(`/doctor/consultation/${apt.id}`, { state: { appointment: apt } })}
+                      >
                       {t('common.viewDetail')}
                     </Button>
                   </div>

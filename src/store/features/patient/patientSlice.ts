@@ -9,6 +9,10 @@ interface PatientState {
   loading: boolean;
   error: string | null;
   updateSuccess: boolean;
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
 }
 
 const initialState: PatientState = {
@@ -17,6 +21,10 @@ const initialState: PatientState = {
   loading: false,
   error: null,
   updateSuccess: false,
+  totalElements: 0,
+  totalPages: 0,
+  currentPage: 0,
+  pageSize: 10,
 };
 
 export const fetchProfileThunk = createAsyncThunk(
@@ -41,11 +49,20 @@ export const updateProfileThunk = createAsyncThunk(
   }
 );
 
+interface FetchAppointmentsArgs {
+  page?: number;
+  size?: number;
+  status?: string;
+  sortBy?: string;
+  sortDir?: string;
+}
+
 export const fetchAppointmentsThunk = createAsyncThunk(
   'patient/fetchAppointments',
-  async (_, { rejectWithValue }) => {
+  async (args: FetchAppointmentsArgs | void, { rejectWithValue }) => {
     try {
-      return await getPatientAppointments();
+      const a = args || {};
+      return await getPatientAppointments(a.page, a.size, a.status, a.sortBy, a.sortDir);
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch appointments');
     }
@@ -112,7 +129,11 @@ const patientSlice = createSlice({
       })
       .addCase(fetchAppointmentsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.appointments = action.payload;
+        state.appointments = action.payload.content;
+        state.totalElements = action.payload.totalElements;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.number;
+        state.pageSize = action.payload.size;
       })
       .addCase(fetchAppointmentsThunk.rejected, (state, action) => {
         state.loading = false;
@@ -132,6 +153,12 @@ export const { clearPatientError, resetUpdateSuccess } = patientSlice.actions;
 
 export const selectPatientProfile = (state: RootState) => state.patient.profile;
 export const selectPatientAppointments = (state: RootState) => state.patient.appointments;
+export const selectPatientAppointmentsPagination = (state: RootState) => ({
+  totalElements: state.patient.totalElements,
+  totalPages: state.patient.totalPages,
+  currentPage: state.patient.currentPage,
+  pageSize: state.patient.pageSize,
+});
 export const selectPatientLoading = (state: RootState) => state.patient.loading;
 export const selectPatientError = (state: RootState) => state.patient.error;
 export const selectPatientUpdateSuccess = (state: RootState) => state.patient.updateSuccess;

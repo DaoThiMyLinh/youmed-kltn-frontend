@@ -71,8 +71,8 @@ const DoctorDashboard = () => {
 
         <Card>
           <CardContent className="p-6 flex items-center space-x-4">
-            <div className="p-3 bg-indigo-100 rounded-lg">
-              <FiClock className="w-6 h-6 text-indigo-600" />
+            <div className="p-3 bg-emerald-100 rounded-lg">
+              <FiClock className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-slate-500">{t('dashboard.todaysSlots')}</p>
@@ -118,7 +118,7 @@ const DoctorDashboard = () => {
                 <div className="flex-shrink-0 flex flex-col items-center justify-center p-4 bg-white rounded-md border border-slate-100 w-32 shadow-sm">
                   <span className="text-sm font-bold text-primary uppercase">{new Date(upcomingAppointment.appointmentTime).toLocaleString('default', { month: 'short' })}</span>
                   <span className="text-3xl font-black text-slate-900">{new Date(upcomingAppointment.appointmentTime).getDate()}</span>
-                  <span className="text-xs text-slate-500">{new Date(upcomingAppointment.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-xs text-slate-500">{new Date(upcomingAppointment.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                 </div>
                 <div className="flex-1 flex flex-col justify-center">
                   <div className="flex items-start justify-between mb-2">
@@ -133,7 +133,7 @@ const DoctorDashboard = () => {
                   <p className="text-sm text-slate-500 line-clamp-2">{t('appointment.reason')}: {upcomingAppointment.reason}</p>
 
                   <div className="mt-4 flex gap-3">
-                    <Link to="/doctor-appointments">
+                    <Link to="/doctor/appointments">
                       <Button variant="outline" size="sm">{t('appointment.manage')}</Button>
                     </Link>
                   </div>
@@ -144,7 +144,7 @@ const DoctorDashboard = () => {
                 icon={<FiCalendar />}
                 title={t('dashboard.noAppointments')}
                 description={t('dashboard.noAppointmentsDesc')}
-                action={<Link to="/doctor-appointments"><Button size="sm">{t('dashboard.viewSchedule')}</Button></Link>}
+                action={<Link to="/doctor/appointments"><Button size="sm">{t('dashboard.viewSchedule')}</Button></Link>}
               />
             )}
           </CardContent>
@@ -158,14 +158,14 @@ const DoctorDashboard = () => {
           <CardContent>
             {recentRecord ? (
               <div className="space-y-6">
-                <div className="relative pl-4 border-l-2 border-indigo-200 pb-4">
-                  <div className="absolute w-3 h-3 bg-indigo-500 rounded-full -left-[7px] top-1"></div>
+                <div className="relative pl-4 border-l-2 border-emerald-200 pb-4">
+                  <div className="absolute w-3 h-3 bg-emerald-500 rounded-full -left-[7px] top-1"></div>
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{t('dashboard.medicalRecordAvailable')}</p>
                       <p className="text-xs text-slate-500 mt-1">{t('history.for')}: {recentRecord.patientName || `PT-${recentRecord.patientId}`}</p>
                     </div>
-                    <Link to={`/consultation/${recentRecord.appointmentId}`} className="text-xs text-indigo-600 font-medium hover:underline">{t('common.view')}</Link>
+                    <Link to={`/doctor/consultation/${recentRecord.appointmentId}`} className="text-xs text-emerald-600 font-medium hover:underline">{t('common.view')}</Link>
                   </div>
                   <p className="text-xs text-slate-400 mt-2">{recentRecord.createdAt ? new Date(recentRecord.createdAt).toLocaleDateString() : 'N/A'}</p>
                 </div>
@@ -177,7 +177,7 @@ const DoctorDashboard = () => {
                       <p className="text-sm font-semibold text-slate-900">{t('dashboard.prescriptionIssued')}</p>
                       <p className="text-xs text-slate-500 mt-1">{t('appointment.diagnosis')}: {recentRecord.diagnosis}</p>
                     </div>
-                    <Link to={`/consultation/${recentRecord.appointmentId}`} className="text-xs text-teal-600 font-medium hover:underline">{t('common.view')}</Link>
+                    <Link to={`/doctor/consultation/${recentRecord.appointmentId}`} className="text-xs text-teal-600 font-medium hover:underline">{t('common.view')}</Link>
                   </div>
                   <p className="text-xs text-slate-400 mt-2">{recentRecord.createdAt ? new Date(recentRecord.createdAt).toLocaleDateString() : 'N/A'}</p>
                 </div>

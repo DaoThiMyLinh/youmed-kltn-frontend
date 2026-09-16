@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Loading, EmptyState, Button } from '../../components';
 import { FiArrowLeft, FiCalendar, FiUser, FiFileText, FiClipboard } from 'react-icons/fi';
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 const PatientAppointmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const appointments = useSelector(selectPatientAppointments);
   const { t } = useTranslation();
   
@@ -18,7 +19,10 @@ const PatientAppointmentDetail = () => {
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [loadingRecord, setLoadingRecord] = useState(true);
 
-  const appointment = appointments.find(a => a.id === Number(id));
+  // Priority 1: location.state (avoids missing items from pagination)
+  // Priority 2: Redux store (fallback for direct visits if data exists)
+  const stateAppointment = location.state?.appointment;
+  const appointment = stateAppointment || appointments.find(a => a.id === Number(id));
 
   useEffect(() => {
     if (appointment) {
@@ -56,7 +60,7 @@ const PatientAppointmentDetail = () => {
   if (!appointment) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <Button variant="ghost" leftIcon={<FiArrowLeft />} onClick={() => navigate('/appointments')}>{t('common.back')}</Button>
+        <Button variant="ghost" leftIcon={<FiArrowLeft />} onClick={() => navigate('/patient/appointments')}>{t('common.back')}</Button>
         <EmptyState title={t('common.noData')} description="The appointment you are looking for does not exist." />
       </div>
     );
@@ -86,7 +90,7 @@ const PatientAppointmentDetail = () => {
             </div>
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <span className="text-slate-500">{t('common.time')}</span>
-              <span className="font-medium text-slate-900">{new Date(appointment.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+              <span className="font-medium text-slate-900">{new Date(appointment.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </div>
             <div className="pt-2">
               <span className="text-slate-500 block mb-1">{t('consultation.reasonForVisit')}</span>
@@ -119,7 +123,7 @@ const PatientAppointmentDetail = () => {
 
       {/* Medical Record */}
       <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4 border-b pb-2 flex items-center gap-2">
-        <FiFileText className="text-indigo-500" /> {t('consultation.medicalRecord')}
+        <FiFileText className="text-emerald-500" /> {t('consultation.medicalRecord')}
       </h2>
       
       {loadingRecord ? (
@@ -134,7 +138,7 @@ const PatientAppointmentDetail = () => {
               </div>
               <div>
                 <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider block mb-2">{t('appointment.diagnosis')}</span>
-                <p className="bg-indigo-50 p-4 rounded-lg text-indigo-900 min-h-[80px] border border-indigo-100 font-medium">{medicalRecord.diagnosis}</p>
+                <p className="bg-emerald-50 p-4 rounded-lg text-emerald-900 min-h-[80px] border border-emerald-100 font-medium">{medicalRecord.diagnosis}</p>
               </div>
               <div className="md:col-span-2">
                 <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider block mb-2">{t('consultation.treatmentNotes')}</span>

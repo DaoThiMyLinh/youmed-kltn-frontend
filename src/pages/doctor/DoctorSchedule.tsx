@@ -10,24 +10,56 @@ const DoctorSchedule = () => {
   const [schedules, setSchedules] = useState<ScheduleModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form state
   const [isAdding, setIsAdding] = useState(false);
-  const [workingDate, setWorkingDate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deletingScheduleId, setDeletingScheduleId] = useState<number | null>(null);
 
   // Slots modal state
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleModel | null>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
+  const isScheduleActive = (schedule: ScheduleModel) => {
+    if (!schedule.active) return false;
+    
+    try {
+      const timeParts = schedule.endTime.split(':');
+      const h = parseInt(timeParts[0] || '0', 10);
+      const m = parseInt(timeParts[1] || '0', 10);
+      const s = parseInt(timeParts[2] || '0', 10);
+      
+      // Parse local date explicitly to avoid UTC mismatch
+      const dateParts = schedule.workingDate.split('-');
+      const year = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const day = parseInt(dateParts[2], 10);
+
+      const endDateTime = new Date(year, month, day, h, m, s, 0);
+      const now = new Date();
+      return now < endDateTime;
+    } catch (e) {
+      return schedule.active;
+    }
+  };
+
   const fetchSchedules = async () => {
     try {
       setLoading(true);
       const data = await scheduleService.getMySchedules();
-      setSchedules(data);
+      const sortedData = data.sort((a, b) => {
+        if (a.workingDate !== b.workingDate) {
+          return b.workingDate.localeCompare(a.workingDate);
+        }
+        return b.startTime.localeCompare(a.startTime);
+      });
+      setSchedules(sortedData);
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch schedules');
@@ -42,30 +74,107 @@ const DoctorSchedule = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!workingDate || !startTime || !endTime) return;
-    
+    setFormError(null);
+
+    if (!startDate || !endDate || !startTime || !endTime) {
+      setFormError(t('schedule.errorRequired', 'Vui lòng điền đầy đủ ngày bắt đầu, ngày kết thúc và giờ.'));
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startD = new Date(startDate);
+    const endD = new Date(endDate);
+
+    if (startD < today) {
+      setFormError(t('schedule.errorPastDate', 'Không thể tạo lịch cho ngày trong quá khứ.'));
+      return;
+    }
+
+    if (startD > endD) {
+      setFormError(t('schedule.errorDateRange', 'Ngày bắt đầu không được lớn hơn ngày kết thúc.'));
+      return;
+    }
+
+    const startParts = startTime.split(':');
+    const endParts = endTime.split(':');
+    if (!['00', '30'].includes(startParts[1]) || !['00', '30'].includes(endParts[1])) {
+      setFormError(t('schedule.errorSlotInterval', 'Giờ bắt đầu và kết thúc phải đúng mốc 00 hoặc 30 phút (VD: 08:00, 08:30).'));
+      return;
+    }
+
+    const start = new Date(`1970-01-01T${startTime}:00`).getTime();
+    const end = new Date(`1970-01-01T${endTime}:00`).getTime();
+    const minStart = new Date(`1970-01-01T06:30:00`).getTime();
+    const maxEnd = new Date(`1970-01-01T16:30:00`).getTime();
+
+    if (start < minStart) {
+      setFormError(t('schedule.errorMinTime', 'Giờ bắt đầu sớm nhất là 06:30.'));
+      return;
+    }
+
+    if (end > maxEnd) {
+      setFormError(t('schedule.errorMaxTime', 'Giờ kết thúc muộn nhất là 16:30.'));
+      return;
+    }
+
+    if (start === end) {
+      setFormError(t('schedule.errorSameTime', 'Giờ kết thúc không được trùng với giờ bắt đầu.'));
+      return;
+    }
+
+    if (end < start) {
+      setFormError(t('schedule.errorTime', 'Giờ kết thúc phải lớn hơn giờ bắt đầu.'));
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      await scheduleService.createSchedule({ workingDate, startTime, endTime });
+      const res = await scheduleService.createScheduleRange({ startDate, endDate, startTime, endTime });
       setIsAdding(false);
-      setWorkingDate('');
+      setStartDate('');
+      setEndDate('');
       setStartTime('');
       setEndTime('');
+
+      let alertMsg = res.message;
+      if (res.createdDates.length > 0) {
+        alertMsg += `\nĐã tạo thành công: ${res.createdDates.length} ngày.`;
+      }
+      if (res.skippedDates.length > 0) {
+        alertMsg += `\nĐã bỏ qua (trùng lịch): ${res.skippedDates.join(', ')}`;
+      }
+      alert(alertMsg);
+
       fetchSchedules();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create schedule');
+      setFormError(err.response?.data?.message || t('common.error', 'Đã có lỗi xảy ra.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (schedule: ScheduleModel) => {
+    if (deletingScheduleId) return;
     if (!window.confirm(t('schedule.confirmDelete', 'Bạn có chắc chắn muốn xóa lịch làm việc này?'))) return;
+
+    setDeletingScheduleId(schedule.id);
     try {
-      await scheduleService.deleteSchedule(id);
+      const doctorId = await scheduleService.getDoctorId();
+      const slots = await scheduleService.getScheduleSlots(doctorId, schedule.workingDate);
+
+      const hasBooked = slots.some(slot => slot.booked);
+      if (hasBooked) {
+        alert(t('schedule.cannotDeleteBooked', 'Lịch làm việc này đã có bệnh nhân đặt khám, không thể xóa.'));
+        return;
+      }
+
+      await scheduleService.deleteSchedule(schedule.id);
       fetchSchedules();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete schedule');
+    } finally {
+      setDeletingScheduleId(null);
     }
   };
 
@@ -95,7 +204,10 @@ const DoctorSchedule = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">{t('menu.schedule')}</h1>
-        <Button onClick={() => setIsAdding(!isAdding)} leftIcon={isAdding ? <FiX /> : <FiPlus />}>
+        <Button onClick={() => {
+          setIsAdding(!isAdding);
+          if (formError) setFormError(null);
+        }} leftIcon={isAdding ? <FiX /> : <FiPlus />}>
           {isAdding ? t('common.cancel') : t('common.create')}
         </Button>
       </div>
@@ -106,33 +218,111 @@ const DoctorSchedule = () => {
             <CardTitle className="text-lg">{t('schedule.add', 'Thêm Lịch Làm Việc')}</CardTitle>
           </CardHeader>
           <CardContent>
+            {formError && (
+              <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                {formError}
+              </div>
+            )}
             <form onSubmit={handleAddSubmit} className="flex flex-col sm:flex-row sm:flex-wrap gap-4 sm:items-end">
               <div className="space-y-1.5 flex-1 w-full sm:w-auto sm:min-w-[200px]">
-                <label className="text-sm font-medium text-slate-700">{t('schedule.workingDate', 'Ngày làm việc')}</label>
-                <Input 
-                  type="date" 
-                  value={workingDate} 
-                  onChange={(e) => setWorkingDate(e.target.value)} 
-                  required 
+                <label className="text-sm font-medium text-slate-700">{t('schedule.startDate', 'Từ ngày')}</label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5 flex-1 w-full sm:w-auto sm:min-w-[150px]">
+                <label className="text-sm font-medium text-slate-700">{t('schedule.endDate', 'Đến ngày')}</label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
+                  required
                 />
               </div>
               <div className="space-y-1.5 flex-1 w-full sm:w-auto sm:min-w-[150px]">
                 <label className="text-sm font-medium text-slate-700">{t('schedule.startTime', 'Giờ bắt đầu')}</label>
-                <Input 
-                  type="time" 
-                  value={startTime} 
-                  onChange={(e) => setStartTime(e.target.value)} 
-                  required 
-                />
+                <div className="flex gap-2">
+                  <select 
+                    className="flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-slate-900"
+                    value={startTime.split(':')[0] || ''}
+                    onChange={(e) => {
+                      const hour = e.target.value;
+                      const min = startTime.split(':')[1] || '00';
+                      setStartTime(`${hour}:${min}`);
+                      if (formError) setFormError(null);
+                    }}
+                    required
+                  >
+                    <option value="" disabled>Giờ</option>
+                    {Array.from({length: 11}, (_, i) => i + 6).map(h => {
+                      const hs = h.toString().padStart(2, '0');
+                      return <option key={hs} value={hs}>{hs}</option>
+                    })}
+                  </select>
+                  <span className="self-center font-bold text-slate-500">:</span>
+                  <select 
+                    className="flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-slate-900"
+                    value={startTime.split(':')[1] || ''}
+                    onChange={(e) => {
+                      const min = e.target.value;
+                      const hour = startTime.split(':')[0] || '08';
+                      setStartTime(`${hour}:${min}`);
+                      if (formError) setFormError(null);
+                    }}
+                    required
+                  >
+                    <option value="" disabled>Phút</option>
+                    <option value="00">00</option>
+                    <option value="30">30</option>
+                  </select>
+                </div>
               </div>
               <div className="space-y-1.5 flex-1 w-full sm:w-auto sm:min-w-[150px]">
                 <label className="text-sm font-medium text-slate-700">{t('schedule.endTime', 'Giờ kết thúc')}</label>
-                <Input 
-                  type="time" 
-                  value={endTime} 
-                  onChange={(e) => setEndTime(e.target.value)} 
-                  required 
-                />
+                <div className="flex gap-2">
+                  <select 
+                    className="flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-slate-900"
+                    value={endTime.split(':')[0] || ''}
+                    onChange={(e) => {
+                      const hour = e.target.value;
+                      const min = endTime.split(':')[1] || '00';
+                      setEndTime(`${hour}:${min}`);
+                      if (formError) setFormError(null);
+                    }}
+                    required
+                  >
+                    <option value="" disabled>Giờ</option>
+                    {Array.from({length: 11}, (_, i) => i + 6).map(h => {
+                      const hs = h.toString().padStart(2, '0');
+                      return <option key={hs} value={hs}>{hs}</option>
+                    })}
+                  </select>
+                  <span className="self-center font-bold text-slate-500">:</span>
+                  <select 
+                    className="flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-slate-900"
+                    value={endTime.split(':')[1] || ''}
+                    onChange={(e) => {
+                      const min = e.target.value;
+                      const hour = endTime.split(':')[0] || '12';
+                      setEndTime(`${hour}:${min}`);
+                      if (formError) setFormError(null);
+                    }}
+                    required
+                  >
+                    <option value="" disabled>Phút</option>
+                    <option value="00">00</option>
+                    <option value="30">30</option>
+                  </select>
+                </div>
               </div>
               <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto mt-2 sm:mt-0">
                 {t('common.save', 'Lưu Lịch')}
@@ -171,27 +361,28 @@ const DoctorSchedule = () => {
                       {schedule.startTime} - {schedule.endTime}
                     </td>
                     <td className="px-6 py-4">
-                      <Badge className="whitespace-nowrap" variant={schedule.active ? 'success' : 'secondary'}>
-                        {schedule.active ? t('schedule.active', 'Đang hoạt động') : t('schedule.inactive', 'Ngừng hoạt động')}
+                      <Badge className="whitespace-nowrap" variant={isScheduleActive(schedule) ? 'success' : 'secondary'}>
+                        {isScheduleActive(schedule) ? t('schedule.active', 'Đang hoạt động') : t('schedule.inactive', 'Ngưng hoạt động')}
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col sm:flex-row justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           leftIcon={<FiEye />}
                           onClick={() => handleViewSlots(schedule)}
                         >
                           {t('common.view')}
                         </Button>
-                        <Button 
-                          variant="danger" 
-                          size="sm" 
+                        <Button
+                          variant="danger"
+                          size="sm"
                           leftIcon={<FiTrash2 />}
-                          onClick={() => handleDelete(schedule.id)}
+                          onClick={() => handleDelete(schedule)}
+                          disabled={deletingScheduleId === schedule.id}
                         >
-                          {t('common.delete')}
+                          {deletingScheduleId === schedule.id ? t('common.loading', 'Đang xử lý...') : t('common.delete')}
                         </Button>
                       </div>
                     </td>
@@ -213,31 +404,32 @@ const DoctorSchedule = () => {
               <div key={schedule.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
                 <div className="flex justify-between items-center">
                   <div className="font-bold text-slate-900 text-base">{schedule.workingDate}</div>
-                  <Badge variant={schedule.active ? 'success' : 'secondary'}>
-                    {schedule.active ? t('schedule.active', 'Đang hoạt động') : t('schedule.inactive', 'Ngừng hoạt động')}
+                  <Badge variant={isScheduleActive(schedule) ? 'success' : 'secondary'}>
+                    {isScheduleActive(schedule) ? t('schedule.active', 'Đang hoạt động') : t('schedule.inactive', 'Ngưng hoạt động')}
                   </Badge>
                 </div>
                 <div className="text-slate-600 text-sm font-medium">
                   {schedule.startTime} - {schedule.endTime}
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1 justify-center"
                     leftIcon={<FiEye />}
                     onClick={() => handleViewSlots(schedule)}
                   >
                     {t('common.view')}
                   </Button>
-                  <Button 
-                    variant="danger" 
-                    size="sm" 
+                  <Button
+                    variant="danger"
+                    size="sm"
                     className="flex-1 justify-center"
                     leftIcon={<FiTrash2 />}
-                    onClick={() => handleDelete(schedule.id)}
+                    onClick={() => handleDelete(schedule)}
+                    disabled={deletingScheduleId === schedule.id}
                   >
-                    {t('common.delete')}
+                    {deletingScheduleId === schedule.id ? t('common.loading', 'Đang xử lý...') : t('common.delete')}
                   </Button>
                 </div>
               </div>
@@ -257,7 +449,7 @@ const DoctorSchedule = () => {
                   {t('history.for')} {selectedSchedule.workingDate} ({selectedSchedule.startTime} - {selectedSchedule.endTime})
                 </p>
               </div>
-              <button 
+              <button
                 onClick={closeSlotsModal}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
               >
@@ -276,17 +468,16 @@ const DoctorSchedule = () => {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {slots.map((slot) => (
-                    <div 
-                      key={slot.id} 
-                      className={`p-3 rounded-lg border text-center space-y-2 ${
-                        slot.booked 
-                          ? 'bg-red-50 border-red-200' 
+                    <div
+                      key={slot.id}
+                      className={`p-3 rounded-lg border text-center space-y-2 ${slot.booked
+                          ? 'bg-red-50 border-red-200'
                           : 'bg-green-50 border-green-200'
-                      }`}
+                        }`}
                     >
                       <div className="font-medium text-sm text-slate-900">
-                        {new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                        {new Date(slot.endDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} -
+                        {new Date(slot.endDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </div>
                       <div>
                         {slot.booked ? (

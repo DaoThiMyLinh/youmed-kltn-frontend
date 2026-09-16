@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Card, CardContent, Badge, Loading, EmptyState } from '../../components';
-import { FiClock, FiFileText, FiUser, FiCalendar } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, Badge, Loading, EmptyState, Button } from '../../components';
+import { FiClock, FiFileText, FiUser, FiCalendar, FiInfo } from 'react-icons/fi';
 import { fetchAppointmentsThunk, selectPatientAppointments, selectPatientLoading } from '../../store/features/patient/patientSlice';
 import { useTranslation } from 'react-i18next';
 // If you want the patient to see their prescription, we would navigate to a patient consultation view.
@@ -9,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 const PatientHistory = () => {
   const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const appointments = useSelector(selectPatientAppointments);
   const loading = useSelector(selectPatientLoading);
@@ -52,7 +54,7 @@ const PatientHistory = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 text-slate-600 font-medium">
-                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </div>
                       <div className="flex items-center gap-2 text-slate-400 text-sm mt-1">
                         <FiCalendar className="w-4 h-4 text-slate-300" /> {new Date(apt.appointmentTime).getFullYear()}
@@ -74,6 +76,14 @@ const PatientHistory = () => {
                     <Badge variant={apt.status === 'CANCELLED' ? 'danger' : 'secondary'} className="px-3 py-1 text-sm uppercase tracking-wide mb-2">
                       {t(`status.${apt.status}`)}
                     </Badge>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      leftIcon={<FiInfo />}
+                      onClick={() => navigate(`/patient/appointments/${apt.id}`, { state: { appointment: apt } })}
+                    >
+                      {t('common.viewDetail')}
+                    </Button>
                   </div>
 
                 </div>

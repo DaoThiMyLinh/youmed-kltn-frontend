@@ -52,7 +52,7 @@ const PatientPrescriptions = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 text-slate-700 font-medium">
-                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </div>
                       <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
                         <FiCalendar className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).getFullYear()}
@@ -74,7 +74,7 @@ const PatientPrescriptions = () => {
                     <Button 
                       variant="outline" 
                       rightIcon={<FiArrowRight />}
-                      onClick={() => navigate(`/appointments/${apt.id}`)}
+                      onClick={() => navigate(`/patient/appointments/${apt.id}`)}
                     >
                       {t('common.view')}
                     </Button>

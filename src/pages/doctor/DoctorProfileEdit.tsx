@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, FormField, Input, PasswordInput, Button, ErrorMessage, Toast } from '../../components';
 import { updateProfileThunk, selectPatientProfile, selectPatientLoading, selectPatientError, selectPatientUpdateSuccess, resetUpdateSuccess } from '../../store/features/patient/patientSlice';
 import { changePassword } from '../../services/patient.service';
-import { selectUserRole } from '../../store/features/auth/authSlice';
 import { useTranslation } from 'react-i18next';
 
-const PatientProfileEdit = () => {
+const DoctorProfileEdit = () => {
   const dispatch = useDispatch<any>();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -15,7 +14,6 @@ const PatientProfileEdit = () => {
   const loading = useSelector(selectPatientLoading);
   const error = useSelector(selectPatientError);
   const updateSuccess = useSelector(selectPatientUpdateSuccess);
-  const role = useSelector(selectUserRole);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -50,7 +48,7 @@ const PatientProfileEdit = () => {
     if (updateSuccess) {
       const timer = setTimeout(() => {
         dispatch(resetUpdateSuccess());
-        navigate(role === 'DOCTOR' ? '/doctor/profile' : '/patient/profile');
+        navigate('/doctor/profile');
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -104,7 +102,7 @@ const PatientProfileEdit = () => {
     <div className="max-w-2xl mx-auto space-y-6 relative">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('profile.editProfile')}</h1>
-        <Button variant="outline" onClick={() => navigate(role === 'DOCTOR' ? '/doctor/profile' : '/patient/profile')} disabled={loading}>{t('common.cancel')}</Button>
+        <Button variant="outline" onClick={() => navigate('/doctor/profile')} disabled={loading}>{t('common.cancel')}</Button>
       </div>
 
       {updateSuccess && (
@@ -177,63 +175,63 @@ const PatientProfileEdit = () => {
               </FormField>
             </div>
 
-              <div className="pt-4 flex justify-end">
-                <Button type="submit" isLoading={loading}>{t('common.save')}</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            <div className="pt-4 flex justify-end">
+              <Button type="submit" isLoading={loading}>{t('common.save')}</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Đổi mật khẩu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pwdSuccess && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md border border-green-200">{pwdSuccess}</div>}
-            <ErrorMessage message={pwdError} className="mb-6" />
-            
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <FormField label="Mật khẩu hiện tại" required>
-                <PasswordInput 
-                  name="currentPassword"
-                  placeholder="Nhập mật khẩu hiện tại"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordChange}
-                  required
-                  disabled={pwdLoading}
-                />
-              </FormField>
+      <Card>
+        <CardHeader>
+          <CardTitle>Đổi mật khẩu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {pwdSuccess && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md border border-green-200">{pwdSuccess}</div>}
+          <ErrorMessage message={pwdError} className="mb-6" />
+          
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <FormField label="Mật khẩu hiện tại" required>
+              <PasswordInput 
+                name="currentPassword"
+                placeholder="Nhập mật khẩu hiện tại"
+                value={passwordData.currentPassword}
+                onChange={handlePasswordChange}
+                required
+                disabled={pwdLoading}
+              />
+            </FormField>
 
-              <FormField label="Mật khẩu mới" required>
-                <PasswordInput 
-                  name="newPassword"
-                  placeholder="Tạo mật khẩu mới"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordChange}
-                  required
-                  disabled={pwdLoading}
-                />
-              </FormField>
+            <FormField label="Mật khẩu mới" required>
+              <PasswordInput 
+                name="newPassword"
+                placeholder="Tạo mật khẩu mới"
+                value={passwordData.newPassword}
+                onChange={handlePasswordChange}
+                required
+                disabled={pwdLoading}
+              />
+            </FormField>
 
-              <FormField label="Xác nhận mật khẩu mới" required>
-                <PasswordInput 
-                  name="confirmPassword"
-                  placeholder="Nhập lại mật khẩu mới"
-                  value={passwordData.confirmPassword}
-                  onChange={handlePasswordChange}
-                  required
-                  disabled={pwdLoading}
-                />
-              </FormField>
+            <FormField label="Xác nhận mật khẩu mới" required>
+              <PasswordInput 
+                name="confirmPassword"
+                placeholder="Nhập lại mật khẩu mới"
+                value={passwordData.confirmPassword}
+                onChange={handlePasswordChange}
+                required
+                disabled={pwdLoading}
+              />
+            </FormField>
 
-              <div className="pt-4 flex justify-end">
-                <Button type="submit" variant="outline" className="border-primary text-primary hover:bg-primary/5" isLoading={pwdLoading}>Cập nhật mật khẩu</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            <div className="pt-4 flex justify-end">
+              <Button type="submit" variant="outline" className="border-primary text-primary hover:bg-primary/5" isLoading={pwdLoading}>Cập nhật mật khẩu</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default PatientProfileEdit;
+export default DoctorProfileEdit;

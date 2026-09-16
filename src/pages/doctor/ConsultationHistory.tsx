@@ -13,6 +13,7 @@ interface HistoryItem {
   patientId: number;
   diagnosisOrReason: string;
   appointmentId: number;
+  fullAppointment?: any; // The original appointment object
 }
 
 const ConsultationHistory = () => {
@@ -36,7 +37,8 @@ const ConsultationHistory = () => {
         patientName: mr.patientName || `PT-${mr.patientId}`,
         patientId: mr.patientId,
         diagnosisOrReason: `${t('appointment.diagnosis')}: ${mr.diagnosis}`,
-        appointmentId: mr.appointmentId
+        appointmentId: mr.appointmentId,
+        fullAppointment: appointmentsRes.content.find(a => a.id === mr.appointmentId)
       }));
 
       const cancelledAppointments: HistoryItem[] = appointmentsRes.content
@@ -48,7 +50,8 @@ const ConsultationHistory = () => {
           patientName: apt.patientName || `PT-${apt.patientId}`,
           patientId: apt.patientId,
           diagnosisOrReason: `${t('appointment.reason')}: ${apt.reason}`,
-          appointmentId: apt.id
+          appointmentId: apt.id,
+          fullAppointment: apt
         }));
 
       const combined = [...completedRecords, ...cancelledAppointments].sort((a, b) => 
@@ -103,7 +106,7 @@ const ConsultationHistory = () => {
                   <div>
                     <div className="flex items-center gap-2 text-slate-600 font-medium">
                       <FiClock className="w-4 h-4 text-slate-400" /> 
-                      {record.date ? new Date(record.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}
+                      {record.date ? new Date(record.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A'}
                     </div>
                     <div className="flex items-center gap-2 text-slate-400 text-sm mt-1">
                       <FiCalendar className="w-4 h-4 text-slate-300" /> 
@@ -132,7 +135,7 @@ const ConsultationHistory = () => {
                         variant="outline" 
                         size="sm" 
                         leftIcon={<FiSearch />}
-                        onClick={() => navigate(`/consultation/${record.appointmentId}`)}
+                        onClick={() => navigate(`/doctor/consultation/${record.appointmentId}`, { state: { appointment: record.fullAppointment } })}
                       >
                         {t('common.viewDetail')}
                       </Button>

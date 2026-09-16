@@ -1,12 +1,16 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import PatientLayout from '../layouts/PatientLayout';
-import DoctorLayout from '../layouts/DoctorLayout';
+import PatientLayout from '../layouts/patient/PatientLayout';
+import DoctorLayout from '../layouts/doctor/DoctorLayout';
+import AdminLayout from '../layouts/admin/AdminLayout';
 
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
-import PatientDashboard from '../pages/patient/PatientDashboard';
+import Home from '../pages/patient/Home';
+import DoctorList from '../pages/patient/DoctorList';
+import DoctorDetail from '../pages/patient/DoctorDetail';
+import PatientSpecialtyList from '../pages/patient/PatientSpecialtyList';
 import PatientProfile from '../pages/patient/PatientProfile';
 import PatientProfileEdit from '../pages/patient/PatientProfileEdit';
 import PatientAppointments from '../pages/patient/PatientAppointments';
@@ -19,6 +23,9 @@ import DoctorSchedule from '../pages/doctor/DoctorSchedule';
 import DoctorAppointments from '../pages/doctor/DoctorAppointments';
 import DoctorConsultation from '../pages/doctor/DoctorConsultation';
 import ConsultationHistory from '../pages/doctor/ConsultationHistory';
+import DoctorProfile from '../pages/doctor/DoctorProfile';
+import DoctorProfileEdit from '../pages/doctor/DoctorProfileEdit';
+import AdminDashboard from '../pages/admin/AdminDashboard';
 import NotFound from '../pages/error/NotFound';
 import Unauthorized from '../pages/error/Unauthorized';
 import ProtectedRoute from './ProtectedRoute';
@@ -37,34 +44,56 @@ const AppRoutes = () => {
       {/* PROTECTED Routes wrapped inside MainLayout */}
       <Route element={<MainLayout />}>
         <Route element={<ProtectedRoute />}>
-          
+
           {/* PATIENT Routes */}
-          <Route element={<RoleGuard allowedRoles={['PATIENT']} />}>
+          <Route path="/patient" element={<RoleGuard allowedRoles={['PATIENT']} />}>
             <Route element={<PatientLayout />}>
-              <Route path="patient-dashboard" element={<PatientDashboard />} />
+              <Route index element={<Home />} />
+              <Route path="doctors" element={<DoctorList />} />
+              <Route path="doctors/:id" element={<DoctorDetail />} />
+              <Route path="specialties" element={<PatientSpecialtyList />} />
               <Route path="profile" element={<PatientProfile />} />
               <Route path="profile/edit" element={<PatientProfileEdit />} />
               <Route path="appointments" element={<PatientAppointments />} />
               <Route path="appointments/:id" element={<PatientAppointmentDetail />} />
               <Route path="booking" element={<PatientBooking />} />
-              <Route path="medical-history" element={<PatientHistory />} />
+              <Route path="history" element={<PatientHistory />} />
               <Route path="prescriptions" element={<PatientPrescriptions />} />
             </Route>
           </Route>
 
-        {/* DOCTOR Routes */}
-        <Route element={<RoleGuard allowedRoles={['DOCTOR']} />}>
-          <Route element={<DoctorLayout />}>
-            <Route path="doctor-dashboard" element={<DoctorDashboard />} />
-            <Route path="doctor-profile" element={<PatientProfile />} />
-            <Route path="doctor-profile/edit" element={<PatientProfileEdit />} />
-            <Route path="schedule" element={<DoctorSchedule />} />
-            <Route path="doctor-appointments" element={<DoctorAppointments />} />
-            <Route path="consultation/:id" element={<DoctorConsultation />} />
-            <Route path="medical-records" element={<ConsultationHistory />} />
-            {/* Add more doctor routes here */}
+          {/* PATIENT Legacy Redirects */}
+          <Route path="/patient-dashboard" element={<Navigate to="/patient" replace />} />
+          <Route path="/profile" element={<Navigate to="/patient/profile" replace />} />
+          <Route path="/appointments" element={<Navigate to="/patient/appointments" replace />} />
+          <Route path="/booking" element={<Navigate to="/patient/booking" replace />} />
+          <Route path="/medical-history" element={<Navigate to="/patient/history" replace />} />
+
+          {/* DOCTOR Routes */}
+          <Route path="/doctor" element={<RoleGuard allowedRoles={['DOCTOR']} />}>
+            <Route element={<DoctorLayout />}>
+              <Route index element={<DoctorDashboard />} />
+              <Route path="profile" element={<DoctorProfile />} />
+              <Route path="profile/edit" element={<DoctorProfileEdit />} />
+              <Route path="schedule" element={<DoctorSchedule />} />
+              <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="consultation/:id" element={<DoctorConsultation />} />
+              <Route path="medical-records" element={<ConsultationHistory />} />
+            </Route>
           </Route>
-        </Route>
+
+          {/* DOCTOR Legacy Redirects */}
+          <Route path="/doctor-dashboard" element={<Navigate to="/doctor" replace />} />
+          <Route path="/doctor-profile" element={<Navigate to="/doctor/profile" replace />} />
+          <Route path="/schedule" element={<Navigate to="/doctor/schedule" replace />} />
+          <Route path="/doctor-appointments" element={<Navigate to="/doctor/appointments" replace />} />
+
+          {/* ADMIN Routes */}
+          <Route path="/admin" element={<RoleGuard allowedRoles={['ADMIN']} />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+            </Route>
+          </Route>
 
         </Route> {/* End ProtectedRoute */}
       </Route> {/* End MainLayout */}

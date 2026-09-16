@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Loading, Input, Toast } from '../../components';
 import { FiUser, FiClock, FiFileText, FiCheck, FiArrowLeft, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { consultationService } from '../../services/consultation.service';
@@ -32,19 +32,21 @@ const DoctorConsultation = () => {
     medicineName: '', dosage: '', frequency: '', duration: '', instruction: ''
   }]);
   const [savingPrescription, setSavingPrescription] = useState(false);
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+
+  const location = useLocation();
+  const stateAppointment = location.state?.appointment as Appointment | undefined;
 
   const fetchDetails = async () => {
     if (!id) return;
     try {
       setLoading(true);
-      // Fetch appointment detail by ID
-      // Since backend has no GET /appointments/{id}, we will use GET /appointments/doctor/my and find it
-      // In a real app, there should be an endpoint for fetching a single appointment
-      const appointmentsResponse = await consultationService.getDoctorAppointments(0, 100);
-      const apt = appointmentsResponse.content.find(a => a.id === Number(id));
       
-      if (!apt) throw new Error('Appointment not found');
-      setAppointment(apt);
+      if (stateAppointment) {
+        setAppointment(stateAppointment);
+      } else {
+        throw new Error('Không thể tải chi tiết do mất dữ liệu điều hướng (thường xảy ra khi F5 hoặc mở tab mới). Backend hiện không hỗ trợ API lấy chi tiết.');
+      }
 
       // Fetch existing medical record
       const record = await consultationService.getMedicalRecordByAppointmentId(Number(id));
@@ -72,13 +74,16 @@ const DoctorConsultation = () => {
   }, [id]);
 
   const handleStatusChange = async (newStatus: string) => {
-    if (!appointment) return;
+    if (!appointment || isStatusUpdating) return;
     try {
+      setIsStatusUpdating(true);
       await consultationService.updateAppointmentStatus(appointment.id, newStatus);
       setAppointment({ ...appointment, status: newStatus as any });
       setToast({ message: `Status updated to ${newStatus}`, type: 'success' });
     } catch (error: any) {
       setToast({ message: error.response?.data?.message || 'Failed to update status', type: 'error' });
+    } finally {
+      setIsStatusUpdating(false);
     }
   };
 
@@ -164,18 +169,18 @@ const DoctorConsultation = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/doctor-appointments')} leftIcon={<FiArrowLeft />}>
+          <Button variant="ghost" onClick={() => navigate('/doctor/appointments')} leftIcon={<FiArrowLeft />}>
             {t('common.back')}
           </Button>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('consultation.title')}</h1>
         </div>
         <div className="flex items-center gap-2">
           {appointment.status === 'PENDING' || appointment.status === 'CONFIRMED' ? (
-            <Button onClick={() => handleStatusChange('CHECKED_IN')}>Check-In</Button>
+            <Button onClick={() => handleStatusChange('CHECKED_IN')} isLoading={isStatusUpdating}>Check-In</Button>
           ) : appointment.status === 'CHECKED_IN' ? (
-            <Button onClick={() => handleStatusChange('IN_PROGRESS')}>Start</Button>
+            <Button onClick={() => handleStatusChange('IN_PROGRESS')} isLoading={isStatusUpdating}>Start</Button>
           ) : appointment.status === 'IN_PROGRESS' ? (
-            <Button variant="primary" onClick={() => handleStatusChange('COMPLETED')} leftIcon={<FiCheck />}>
+            <Button variant="primary" onClick={() => handleStatusChange('COMPLETED')} leftIcon={<FiCheck />} isLoading={isStatusUpdating}>
               {t('consultation.completeConsultation')}
             </Button>
           ) : null}

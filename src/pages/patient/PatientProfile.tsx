@@ -28,7 +28,7 @@ const PatientProfile = () => {
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('profile.myProfile')}</h1>
-        <Link to={role === 'DOCTOR' ? "/doctor-profile/edit" : "/profile/edit"}>
+        <Link to={role === 'DOCTOR' ? "/doctor/profile/edit" : "/patient/profile/edit"}>
           <Button leftIcon={<FiEdit2 />}>{t('profile.editProfile')}</Button>
         </Link>
       </div>

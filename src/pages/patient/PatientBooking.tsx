@@ -29,11 +29,29 @@ const PatientBooking = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [reason, setReason] = useState<string>('');
+  const [urlDoctorError, setUrlDoctorError] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchDoctorsThunk());
     dispatch(fetchSpecialtiesThunk());
   }, [dispatch]);
+
+  // Handle doctorId from URL
+  useEffect(() => {
+    const targetDoctorId = searchParams.get('doctorId');
+    if (targetDoctorId && doctors.length > 0 && !selectedDoctor && step === 1) {
+      const doctor = doctors.find(d => d.id.toString() === targetDoctorId);
+      if (doctor) {
+        setSelectedDoctor(doctor);
+        if (doctor.specialty) {
+          setSelectedSpecialty(doctor.specialty);
+        }
+        setStep(3); // Skip to date/time selection
+      } else {
+        setUrlDoctorError(t('Không tìm thấy bác sĩ theo yêu cầu. Vui lòng chọn bác sĩ từ danh sách.'));
+      }
+    }
+  }, [doctors, searchParams, selectedDoctor, step, t]);
 
   useEffect(() => {
     if (success) {
@@ -42,7 +60,7 @@ const PatientBooking = () => {
       }
       const timer = setTimeout(() => {
         dispatch(resetBookingSuccess());
-        navigate('/appointments');
+        navigate('/patient/appointments'); // Fix to use correct patient route
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -65,6 +83,11 @@ const PatientBooking = () => {
       case 1: // Select Specialty
         return (
           <div className="space-y-4">
+            {urlDoctorError && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 text-sm border border-red-100">
+                {urlDoctorError}
+              </div>
+            )}
             <h3 className="text-lg font-medium text-slate-900 mb-4">{t('booking.chooseSpecialtyDesc')}</h3>
             {specialties.length === 0 && !loading && (
               <p className="text-slate-500">{t('booking.noSpecialties')}</p>
@@ -115,13 +138,25 @@ const PatientBooking = () => {
           </div>
         );
       case 3: // Select Date & Time
-        // Ensure minimum date is tomorrow
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const minDate = tomorrow.toISOString().split('T')[0];
+        // Ensure minimum date is today
+        const today = new Date();
+        const minDate = today.toISOString().split('T')[0];
 
         return (
           <div className="space-y-8">
+            {selectedDoctor && (
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                  <FiUser className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 mb-1">Bác sĩ đã chọn:</p>
+                  <h4 className="font-bold text-slate-900">{selectedDoctor.fullName}</h4>
+                  <p className="text-sm font-medium text-blue-600">{selectedDoctor.specialty?.name || 'Đa khoa'}</p>
+                </div>
+              </div>
+            )}
+            
             <div>
               <h3 className="text-lg font-medium text-slate-900 mb-4 flex items-center gap-2">
                 <FiCalendar className="text-primary" /> {t('booking.selectDate')}
@@ -148,7 +183,7 @@ const PatientBooking = () => {
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {timeSlots.map((slot: TimeSlot) => {
-                    const time = new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const time = new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
                     const isSelected = selectedTimeSlot?.id === slot.id;
                     return (
                       <button
@@ -219,7 +254,7 @@ const PatientBooking = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">{t('common.time')}</p>
-                  <p className="font-semibold text-slate-900">{selectedTimeSlot ? new Date(selectedTimeSlot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</p>
+                  <p className="font-semibold text-slate-900">{selectedTimeSlot ? new Date(selectedTimeSlot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}</p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-sm text-slate-500">{t('booking.step4')}</p>
