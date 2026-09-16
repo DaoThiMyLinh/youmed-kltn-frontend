@@ -138,9 +138,12 @@ const PatientBooking = () => {
           </div>
         );
       case 3: // Select Date & Time
-        // Ensure minimum date is today
-        const today = new Date();
-        const minDate = today.toISOString().split('T')[0];
+        // Ensure minimum date is today (Local time to avoid UTC shift)
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const minDate = `${y}-${m}-${d}`;
 
         return (
           <div className="space-y-8">

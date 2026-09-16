@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, FormField, Input, PasswordInput, Button, ErrorMessage, Toast } from '../../components';
@@ -33,6 +33,14 @@ const PatientProfileEdit = () => {
   const [pwdLoading, setPwdLoading] = useState(false);
   const [pwdError, setPwdError] = useState<string | null>(null);
   const [pwdSuccess, setPwdSuccess] = useState<string | null>(null);
+
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, []);
 
   useEffect(() => {
     if (profile) {
@@ -170,6 +178,7 @@ const PatientProfileEdit = () => {
                 <Input 
                   type="date"
                   name="dateOfBirth"
+                  max={todayStr}
                   value={formData.dateOfBirth}
                   onChange={handleChange}
                   disabled={loading}
