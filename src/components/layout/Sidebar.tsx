@@ -62,15 +62,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.path === '/patient' || item.path === '/doctor' || item.path === '/admin'}
               onClick={() => {
                 if (window.innerWidth < 1024) onClose();
               }}
-              className={({ isActive }) => clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
-                isActive 
-                  ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 shadow-sm shadow-emerald-100/50' 
-                  : 'text-slate-600 hover:bg-white/60 hover:text-emerald-600 hover:shadow-sm hover:-translate-y-0.5'
-              )}
+              className={({ isActive }) => {
+                const activeClasses = 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 shadow-sm shadow-emerald-100/50';
+                const hoverClasses = 'text-slate-600 hover:bg-white/60 hover:text-emerald-600 hover:shadow-sm hover:-translate-y-0.5';
+                
+                return clsx(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
+                  isActive ? activeClasses : hoverClasses
+                );
+              }}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
               {t(`menu.${getMenuKey(item.title)}`)}

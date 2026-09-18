@@ -31,7 +31,7 @@ export const consultationService = {
       const response = await axiosClient.get<MedicalRecord>(`/medical-records/appointment/${appointmentId}`);
       return response.data;
     } catch (error: any) {
-      if (error.response?.status === 404) {
+      if (error.response?.status === 404 || error.response?.status === 400) {
         return null;
       }
       throw error;
@@ -53,7 +53,7 @@ export const consultationService = {
       const response = await axiosClient.get<Prescription>(`/prescriptions/medical-record/${medicalRecordId}`);
       return response.data;
     } catch (error: any) {
-      if (error.response?.status === 404) {
+      if (error.response?.status === 404 || error.response?.status === 400) {
         return null;
       }
       throw error;
