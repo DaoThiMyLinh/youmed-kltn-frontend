@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiSearch, FiArrowRight, FiUser, FiCalendar, FiStar, FiHeart, FiShield, FiActivity } from 'react-icons/fi';
-import { getActiveDoctors } from '../../services/appointment.service';
-import { getActiveSpecialties } from '../../services/specialty.service';
+import { getActiveDoctorsPublic } from '../../services/appointment.service';
+import { getActiveSpecialtiesPublic } from '../../services/specialty.service';
 import type { Doctor } from '../../types/appointment';
 import type { Specialty } from '../../types/specialty';
 import { motion } from 'framer-motion';
@@ -19,8 +19,8 @@ const Home = () => {
       try {
         setLoading(true);
         const [doctorsData, specialtiesData] = await Promise.all([
-          getActiveDoctors(),
-          getActiveSpecialties()
+          getActiveDoctorsPublic(),
+          getActiveSpecialtiesPublic()
         ]);
         setDoctors(doctorsData.slice(0, 4));
         setSpecialties(specialtiesData.slice(0, 8));

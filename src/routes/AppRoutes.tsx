@@ -35,23 +35,26 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* PUBLIC Routes */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Navigate to="/patient" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* PROTECTED Routes wrapped inside MainLayout */}
+      {/* Routes wrapped inside MainLayout */}
       <Route element={<MainLayout />}>
-        <Route element={<ProtectedRoute />}>
+        
+        {/* PATIENT Routes (Mixed Public & Protected) */}
+        <Route path="/patient" element={<PatientLayout />}>
+          {/* Public Patient Routes */}
+          <Route index element={<Home />} />
+          <Route path="doctors" element={<DoctorList />} />
+          <Route path="doctors/:id" element={<DoctorDetail />} />
+          <Route path="specialties" element={<PatientSpecialtyList />} />
 
-          {/* PATIENT Routes */}
-          <Route path="/patient" element={<RoleGuard allowedRoles={['PATIENT']} />}>
-            <Route element={<PatientLayout />}>
-              <Route index element={<Home />} />
-              <Route path="doctors" element={<DoctorList />} />
-              <Route path="doctors/:id" element={<DoctorDetail />} />
-              <Route path="specialties" element={<PatientSpecialtyList />} />
+          {/* Protected Patient Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<RoleGuard allowedRoles={['PATIENT']} />}>
               <Route path="profile" element={<PatientProfile />} />
               <Route path="profile/edit" element={<PatientProfileEdit />} />
               <Route path="appointments" element={<PatientAppointments />} />
@@ -61,7 +64,10 @@ const AppRoutes = () => {
               <Route path="prescriptions" element={<PatientPrescriptions />} />
             </Route>
           </Route>
+        </Route>
 
+        {/* PROTECTED Routes (Doctor & Admin) */}
+        <Route element={<ProtectedRoute />}>
           {/* PATIENT Legacy Redirects */}
           <Route path="/patient-dashboard" element={<Navigate to="/patient" replace />} />
           <Route path="/profile" element={<Navigate to="/patient/profile" replace />} />

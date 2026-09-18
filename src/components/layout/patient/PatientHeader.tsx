@@ -88,12 +88,20 @@ export const PatientHeader = () => {
                 </button>
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm"
-              >
-                Đăng nhập
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link
+                  to="/register"
+                  className="text-emerald-600 bg-emerald-50 px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-100 transition-colors"
+                >
+                  Đăng ký
+                </Link>
+                <Link
+                  to="/login"
+                  className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm"
+                >
+                  Đăng nhập
+                </Link>
+              </div>
             )}
           </div>
 
@@ -143,13 +151,22 @@ export const PatientHeader = () => {
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="block px-3 py-2 rounded-md text-base font-medium text-emerald-600 hover:bg-emerald-50"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Đăng nhập
-              </Link>
+              <>
+                <Link
+                  to="/register"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-emerald-600 hover:bg-emerald-50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Đăng ký
+                </Link>
+                <Link
+                  to="/login"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-emerald-600 hover:bg-emerald-50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Đăng nhập
+                </Link>
+              </>
             )}
           </div>
         </div>
