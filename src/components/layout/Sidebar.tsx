@@ -21,6 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
       'Appointments': 'appointments',
       'Book Appointment': 'bookAppointment',
       'Medical History': 'medicalHistory',
+      'Medical Records': 'medicalRecords',
       'Prescriptions': 'prescriptions',
       'Profile': 'profile',
       'Schedule': 'schedule',
@@ -43,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
         'fixed top-0 left-0 bottom-0 z-30 w-64 glass-effect flex flex-col transition-transform duration-500 ease-out lg:translate-x-0 lg:static lg:z-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-indigo-50/50 bg-white/40">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-emerald-50/50 bg-white/40">
           <div className="font-bold text-2xl text-gradient tracking-tight drop-shadow-sm">
             YouMed
           </div>
@@ -61,15 +62,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.path === '/patient' || item.path === '/doctor' || item.path === '/admin'}
               onClick={() => {
                 if (window.innerWidth < 1024) onClose();
               }}
-              className={({ isActive }) => clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
-                isActive 
-                  ? 'bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-700 shadow-sm shadow-indigo-100/50' 
-                  : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600 hover:shadow-sm hover:-translate-y-0.5'
-              )}
+              className={({ isActive }) => {
+                const activeClasses = 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 shadow-sm shadow-emerald-100/50';
+                const hoverClasses = 'text-slate-600 hover:bg-white/60 hover:text-emerald-600 hover:shadow-sm hover:-translate-y-0.5';
+                
+                return clsx(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
+                  isActive ? activeClasses : hoverClasses
+                );
+              }}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
               {t(`menu.${getMenuKey(item.title)}`)}

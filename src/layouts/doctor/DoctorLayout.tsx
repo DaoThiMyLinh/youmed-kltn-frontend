@@ -1,4 +1,4 @@
-import { DashboardLayout } from './DashboardLayout';
+import { DashboardLayout } from '../shared/DashboardLayout';
 
 const DoctorLayout = () => {
   return <DashboardLayout />;

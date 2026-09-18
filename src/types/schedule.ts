@@ -23,6 +23,19 @@ export interface ScheduleRequest {
   endTime: string; // HH:mm
 }
 
+export interface CreateScheduleRangeRequest {
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+}
+
+export interface CreateScheduleRangeResponse {
+  message: string;
+  createdDates: string[];
+  skippedDates: string[];
+}
+
 export interface DashboardMetrics {
   workingDays: number;
   todaySlots: number;

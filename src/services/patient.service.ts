@@ -16,9 +16,25 @@ export const changePassword = async (data: any): Promise<any> => {
   return response.data;
 };
 
-export const getPatientAppointments = async (): Promise<Appointment[]> => {
-  const response = await axiosClient.get<PageResponse<Appointment>>('/appointments/my');
-  return response.data.content;
+export const getPatientAppointments = async (
+  page?: number,
+  size?: number,
+  status?: string,
+  sortBy?: string,
+  sortDir?: string
+): Promise<PageResponse<Appointment>> => {
+  const params = new URLSearchParams();
+  if (page !== undefined) params.append('page', page.toString());
+  if (size !== undefined) params.append('size', size.toString());
+  if (status) params.append('status', status);
+  if (sortBy) params.append('sortBy', sortBy);
+  if (sortDir) params.append('sortDir', sortDir);
+
+  const queryString = params.toString();
+  const url = `/appointments/my${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await axiosClient.get<PageResponse<Appointment>>(url);
+  return response.data;
 };
 
 export const cancelAppointment = async (id: number): Promise<Appointment> => {

@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 
 export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (
-  <div className={clsx('bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all duration-500 ease-out', className)} {...props} />
+  <div className={clsx('bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-1 transition-all duration-500 ease-out', className)} {...props} />
 );
 
 export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (

@@ -71,11 +71,11 @@ const Register = () => {
       if (verifyOtpThunk.fulfilled.match(resultAction)) {
         const role = resultAction.payload.role;
         if (role === 'DOCTOR') {
-          navigate('/doctor-dashboard');
+          navigate('/doctor');
         } else if (role === 'ADMIN') {
-          navigate('/admin-dashboard');
+          navigate('/admin');
         } else {
-          navigate('/patient-dashboard');
+          navigate('/patient');
         }
       } else {
         setLocalError(resultAction.payload as string || 'Mã OTP không hợp lệ');

@@ -1,123 +1,121 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, Badge, Loading, EmptyState, Button } from '../../components';
-import { FiCalendar, FiClock, FiUser, FiXCircle, FiInfo } from 'react-icons/fi';
 import { fetchAppointmentsThunk, cancelAppointmentThunk, selectPatientAppointments, selectPatientLoading } from '../../store/features/patient/patientSlice';
 import { useTranslation } from 'react-i18next';
+import { MedicalCalendar, CalendarEventModal } from '../../components';
+import type { CalendarEvent } from '../../components/calendar/MedicalCalendar';
+import { motion } from 'framer-motion';
 
 const PatientAppointments = () => {
   const dispatch = useDispatch<any>();
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const appointments = useSelector(selectPatientAppointments);
   const loading = useSelector(selectPatientLoading);
 
-  const activeAppointments = appointments.filter(apt => apt.status !== 'COMPLETED' && apt.status !== 'CANCELLED');
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAppointmentsThunk());
   }, [dispatch]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'success';
-      case 'PENDING': return 'warning';
-      case 'CANCELLED': return 'danger';
-      case 'COMPLETED': return 'secondary';
-      default: return 'primary';
-    }
-  };
-
   const handleCancel = (id: number) => {
-    if (window.confirm(t('appointment.confirmCancel'))) {
+    if (window.confirm(t('appointment.confirmCancel', 'Bạn có chắc muốn hủy lịch hẹn này?'))) {
       dispatch(cancelAppointmentThunk(id));
     }
   };
 
-  if (loading && appointments.length === 0) return <Loading size="lg" className="mt-20" />;
+  const handleEventClick = (info: any) => {
+    setSelectedEvent(info.event);
+    setIsEventModalOpen(true);
+  };
+
+  const calendarEvents = useMemo(() => {
+    const events: CalendarEvent[] = [];
+
+    appointments.forEach(apt => {
+      try {
+        if (!apt.appointmentTime) return;
+        
+        let start: Date;
+        if (apt.appointmentTime.includes('Z') || apt.appointmentTime.includes('+') || apt.appointmentTime.match(/-\d{2}:\d{2}$/)) {
+          start = new Date(apt.appointmentTime);
+        } else {
+          const [datePart, timePart] = apt.appointmentTime.split('T');
+          const [y, m, d] = datePart.split('-').map(Number);
+          const [h, min, s] = (timePart || '00:00:00').split(':').map(Number);
+          start = new Date(y, m - 1, d, h, min, s || 0);
+        }
+
+        const end = new Date(start.getTime() + 30 * 60000); // Add 30 mins
+        
+        let bgColor = '#3b82f6'; // primary
+        if (apt.status === 'CONFIRMED') bgColor = '#10b981'; // emerald-500
+        if (apt.status === 'PENDING') bgColor = '#f59e0b'; // amber-500
+        if (apt.status === 'CANCELLED') bgColor = '#ef4444'; // red-500
+        if (apt.status === 'COMPLETED') bgColor = '#64748b'; // slate-500
+
+        events.push({
+          id: `appointment_${apt.id}`,
+          title: apt.doctorName,
+          start: start,
+          end: end,
+          backgroundColor: bgColor,
+          borderColor: 'transparent',
+          textColor: '#ffffff',
+          classNames: ['calendar-appointment-event', 'shadow-sm', 'rounded-md', 'border-none'],
+          extendedProps: { type: 'appointment', data: apt, status: apt.status, order: 2 }
+        });
+      } catch (e) {
+        console.error("Error mapping appointment event", e);
+      }
+    });
+
+    return events;
+  }, [appointments]);
+
+  if (loading && appointments.length === 0) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('menu.appointments')}</h1>
-      </div>
-
-      {activeAppointments.length === 0 ? (
-        <EmptyState 
-          icon={<FiCalendar />}
-          title={t('common.noData')}
-          description={t('appointment.noActiveAppointments')}
-        />
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {activeAppointments.map((apt) => (
-            <Card key={apt.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  
-                  {/* Left: Date & Time */}
-                  <div className="flex items-center gap-6 md:w-1/4">
-                    <div className="flex flex-col items-center justify-center p-3 bg-blue-50 rounded-lg border border-blue-100 min-w-[80px]">
-                      <span className="text-xs font-bold text-blue-600 uppercase">
-                        {new Date(apt.appointmentTime).toLocaleString('default', { month: 'short' })}
-                      </span>
-                      <span className="text-2xl font-black text-slate-900">
-                        {new Date(apt.appointmentTime).getDate()}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 text-slate-700 font-medium">
-                        <FiClock className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
-                        <FiCalendar className="w-4 h-4 text-slate-400" /> {new Date(apt.appointmentTime).getFullYear()}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Middle: Doctor Info */}
-                  <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <FiUser className="w-5 h-5 text-primary" /> {apt.doctorName}
-                    </h3>
-                    <p className="text-primary font-medium text-sm mb-2">{apt.specialization}</p>
-                    <p className="text-slate-600 text-sm"><span className="font-medium text-slate-700">{t('appointment.reason')}:</span> {apt.reason}</p>
-                  </div>
-
-                  {/* Right: Status & Actions */}
-                  <div className="flex flex-col md:items-end justify-between border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 gap-3 md:w-1/4">
-                    <Badge variant={getStatusBadge(apt.status) as any} className="px-3 py-1 text-sm uppercase tracking-wide">
-                      {t(`status.${apt.status}`)}
-                    </Badge>
-                    <div className="flex flex-col w-full md:w-auto gap-2 mt-2 md:mt-auto">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        leftIcon={<FiInfo />}
-                        onClick={() => navigate(`/appointments/${apt.id}`)}
-                      >
-                        {t('common.viewDetail')}
-                      </Button>
-                      {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
-                        <Button 
-                          size="sm" 
-                          variant="danger" 
-                          leftIcon={<FiXCircle />}
-                          onClick={() => handleCancel(apt.id)}
-                        >
-                          {t('common.cancel')}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+    <div className="space-y-8 pb-10">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-emerald-100 to-transparent rounded-full opacity-50 -mr-20 -mt-20"></div>
+        <div className="relative z-10">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">{t('menu.appointments')}</h1>
+          <p className="text-slate-500">Quản lý và theo dõi tất cả lịch hẹn khám bệnh của bạn tại đây.</p>
         </div>
-      )}
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-100"
+      >
+        <MedicalCalendar 
+          events={calendarEvents} 
+          onEventClick={handleEventClick} 
+          height={750}
+        />
+      </motion.div>
+
+      <CalendarEventModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        event={selectedEvent}
+        onCancelAppointment={handleCancel}
+        isCancelingAppointment={loading}
+      />
     </div>
   );
 };
