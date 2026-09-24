@@ -25,5 +25,10 @@ export const menuConfig: Record<string, MenuItem[]> = {
   ],
   ADMIN: [
     { title: 'Dashboard', path: '/admin', icon: FiHome },
+  ],
+  DEPARTMENT_MANAGER: [
+    { title: 'Dashboard', path: '/manager', icon: FiHome },
+    { title: 'Doctors', path: '/manager/doctors', icon: FiUser },
+    { title: 'Schedule Approval', path: '/manager/schedules', icon: FiCalendar },
   ]
 };

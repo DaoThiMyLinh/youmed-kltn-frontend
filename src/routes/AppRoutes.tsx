@@ -3,6 +3,10 @@ import MainLayout from '../layouts/MainLayout';
 import PatientLayout from '../layouts/patient/PatientLayout';
 import DoctorLayout from '../layouts/doctor/DoctorLayout';
 import AdminLayout from '../layouts/admin/AdminLayout';
+import ManagerLayout from '../layouts/manager/ManagerLayout';
+import ManagerDoctorList from '../pages/manager/ManagerDoctorList';
+import ManagerScheduleApproval from '../pages/manager/ManagerScheduleApproval';
+import ManagerDashboard from '../pages/manager/ManagerDashboard';
 
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
@@ -98,6 +102,15 @@ const AppRoutes = () => {
           <Route path="/admin" element={<RoleGuard allowedRoles={['ADMIN']} />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+            </Route>
+          </Route>
+
+          {/* MANAGER Routes */}
+          <Route path="/manager" element={<RoleGuard allowedRoles={['DEPARTMENT_MANAGER']} />}>
+            <Route element={<ManagerLayout />}>
+              <Route index element={<ManagerDashboard />} />
+              <Route path="doctors" element={<ManagerDoctorList />} />
+              <Route path="schedules" element={<ManagerScheduleApproval />} />
             </Route>
           </Route>
 

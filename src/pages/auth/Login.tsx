@@ -26,7 +26,9 @@ const Login = () => {
 
     if (loginThunk.fulfilled.match(resultAction)) {
       const role = resultAction.payload.role;
-      if (role === 'DOCTOR') {
+      if (role === 'DEPARTMENT_MANAGER') {
+        navigate('/manager');
+      } else if (role === 'DOCTOR') {
         navigate('/doctor');
       } else if (role === 'ADMIN') {
         navigate('/admin');

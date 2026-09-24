@@ -10,10 +10,13 @@ export interface TimeSlot {
 export interface ScheduleModel {
   id: number;
   doctorId?: number;
+  doctorName?: string;
   workingDate: string; // YYYY-MM-DD
   startTime: string; // HH:mm:ss
   endTime: string; // HH:mm:ss
   active: boolean;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejectionReason?: string | null;
   slots?: TimeSlot[];
 }
 

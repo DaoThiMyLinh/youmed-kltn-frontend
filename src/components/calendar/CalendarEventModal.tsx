@@ -54,10 +54,26 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       <div className="flex items-center gap-2 text-slate-700">
         <FiInfo className="text-primary" />
         <span className="font-medium">{t('common.status', 'Trạng thái')}:</span>
-        <Badge variant={data.active ? 'success' : 'secondary'}>
-          {data.active ? t('schedule.active', 'Đang hoạt động') : t('schedule.inactive', 'Ngưng hoạt động')}
-        </Badge>
+        {data.status ? (
+          <Badge variant={
+            data.status === 'APPROVED' ? 'success' : 
+            data.status === 'REJECTED' ? 'danger' : 'warning'
+          }>
+            {data.status === 'APPROVED' ? 'Đã duyệt' : 
+             data.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
+          </Badge>
+        ) : (
+          <Badge variant={data.active ? 'success' : 'secondary'}>
+            {data.active ? t('schedule.active', 'Đang hoạt động') : t('schedule.inactive', 'Ngưng hoạt động')}
+          </Badge>
+        )}
       </div>
+      {data.status === 'REJECTED' && data.rejectionReason && (
+        <div className="text-slate-700 mt-2">
+          <span className="font-medium block mb-1">Lý do từ chối:</span>
+          <div className="bg-slate-50 p-2 rounded text-sm text-red-600 border border-red-100">{data.rejectionReason}</div>
+        </div>
+      )}
       
       <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
         {onViewTimeSlots && (

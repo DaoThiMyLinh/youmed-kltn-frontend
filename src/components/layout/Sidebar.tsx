@@ -25,6 +25,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
       'Prescriptions': 'prescriptions',
       'Profile': 'profile',
       'Schedule': 'schedule',
+      'Doctors': 'doctors',
+      'Schedule Approval': 'scheduleApproval',
     };
     return keyMap[title] || title.toLowerCase();
   };
@@ -62,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/patient' || item.path === '/doctor' || item.path === '/admin'}
+              end={item.path === '/patient' || item.path === '/doctor' || item.path === '/admin' || item.path === '/manager'}
               onClick={() => {
                 if (window.innerWidth < 1024) onClose();
               }}
@@ -77,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
               }}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
-              {t(`menu.${getMenuKey(item.title)}`)}
+              {t(`menu.${getMenuKey(item.title)}`, item.title)}
             </NavLink>
           ))}
         </nav>
