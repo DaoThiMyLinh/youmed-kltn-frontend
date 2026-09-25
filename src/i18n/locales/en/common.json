@@ -34,7 +34,8 @@
     "doctorName": "Doctor Name",
     "specialty": "Specialty",
     "consultationFee": "Consultation Fee",
-    "standard": "Standard"
+    "standard": "Standard",
+    "free": "Free"
   },
   "menu": {
     "dashboard": "Dashboard",
@@ -48,6 +49,8 @@
     "history": "History",
     "users": "Users",
     "doctors": "Doctors",
+    "specialties": "Specialties",
+    "patients": "Patients",
     "statistics": "Statistics",
     "scheduleApproval": "Schedule Approval"
   },
@@ -247,5 +250,77 @@
     "newest": "Newest",
     "oldest": "Oldest",
     "noFilterResults": "No results found matching your filters."
+  },
+  "admin": {
+    "doctorsList": "Doctors List",
+    "doctorsDesc": "Manage the list of doctors across the system.",
+    "specialtiesList": "Specialties Management",
+    "specialtiesDesc": "Manage the list of specialties across the system.",
+    "usersList": "Users Management",
+    "usersDesc": "Manage roles and user accounts.",
+    "patientsList": "Patients List",
+    "patientsDesc": "Search and manage patient records across the system.",
+    
+    "table": {
+      "doctor": "Doctor",
+      "specialty": "Specialty",
+      "contact": "Contact",
+      "status": "Status",
+      "actions": "Actions",
+      "patient": "Patient",
+      "gender": "Gender",
+      "joinDate": "Join Date",
+      "detail": "Detail",
+      "user": "User",
+      "role": "Role"
+    },
+    
+    "status": {
+      "active": "Active",
+      "inactive": "Suspended",
+      "you": "You"
+    },
+
+    "role": {
+      "all": "All Roles",
+      "admin": "Admin",
+      "doctor": "Doctor",
+      "patient": "Patient",
+      "manager": "Department Manager"
+    },
+
+    "dashboard": {
+      "welcome": "Welcome to the Admin Control Panel.",
+      "totalDoctors": "Total Doctors",
+      "totalSpecialties": "Total Specialties",
+      "totalUsers": "Total Users",
+      "totalPatients": "Total Patients",
+      "quickActions": "Quick Actions",
+      "quickActionsDesc": "Quick shortcuts to main management functions of the system."
+    },
+
+    "search": {
+      "doctor": "Search by name, phone, email...",
+      "specialty": "Search specialty...",
+      "user": "Search user...",
+      "patient": "Search patient..."
+    },
+    
+    "modal": {
+      "patientProfile": "Patient Profile",
+      "userPermission": "User Permission",
+      "patientId": "Patient ID",
+      "contactInfo": "Contact Information",
+      "email": "Email",
+      "phone": "Phone",
+      "gender": "Gender",
+      "dob": "Date of Birth",
+      "address": "Address",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "notUpdated": "Not updated",
+      "close": "Close"
+    }
   }
 }

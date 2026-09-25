@@ -27,6 +27,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
       'Schedule': 'schedule',
       'Doctors': 'doctors',
       'Schedule Approval': 'scheduleApproval',
+      'Specialties': 'specialties',
+      'Users': 'users',
+      'Patients': 'patients',
     };
     return keyMap[title] || title.toLowerCase();
   };

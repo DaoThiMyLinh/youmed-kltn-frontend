@@ -165,25 +165,7 @@ const Home = () => {
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10 flex flex-col items-center text-center">
                       <div className="w-20 h-20 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-emerald-100/50 relative overflow-hidden">
-                        {specialty.imageUrl && specialty.imageUrl !== 'string' ? (
-                          <img 
-                            src={specialty.imageUrl} 
-                            alt={specialty.name} 
-                            className="w-10 h-10 object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                              (e.target as HTMLImageElement).parentElement?.classList.add('home-fallback-icon');
-                            }} 
-                          />
-                        ) : (
-                          <FiActivity className="w-10 h-10 text-emerald-500 home-fallback-icon-default" />
-                        )}
-                        {specialty.imageUrl && specialty.imageUrl !== 'string' && (
-                          <FiActivity className="w-10 h-10 text-emerald-500 hidden home-fallback-icon-show" />
-                        )}
-                        <style>{`
-                          .home-fallback-icon .home-fallback-icon-show { display: block !important; }
-                        `}</style>
+                        <FiActivity className="w-10 h-10 text-emerald-500 home-fallback-icon-default" />
                       </div>
                       <h3 className="font-bold text-slate-800 text-lg group-hover:text-emerald-600 transition-colors">{specialty.name}</h3>
                     </div>

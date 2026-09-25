@@ -1,4 +1,4 @@
-import { FiHome, FiCalendar, FiUser, FiClock, FiFileText, FiPlusCircle } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiUser, FiClock, FiFileText, FiPlusCircle, FiGrid, FiUsers, FiHeart } from 'react-icons/fi';
 import React from 'react';
 
 export interface MenuItem {
@@ -25,9 +25,14 @@ export const menuConfig: Record<string, MenuItem[]> = {
   ],
   ADMIN: [
     { title: 'Dashboard', path: '/admin', icon: FiHome },
+    { title: 'Doctors', path: '/admin/doctors', icon: FiUser },
+    { title: 'Specialties', path: '/admin/specialties', icon: FiGrid },
+    { title: 'Users', path: '/admin/users', icon: FiUsers },
+    { title: 'Patients', path: '/admin/patients', icon: FiHeart },
   ],
   DEPARTMENT_MANAGER: [
     { title: 'Dashboard', path: '/manager', icon: FiHome },
+    { title: 'Profile', path: '/manager/profile', icon: FiUser },
     { title: 'Doctors', path: '/manager/doctors', icon: FiUser },
     { title: 'Schedule Approval', path: '/manager/schedules', icon: FiCalendar },
   ]
