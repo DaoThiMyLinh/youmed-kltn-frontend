@@ -36,6 +36,9 @@ import AdminDoctorList from '../pages/admin/AdminDoctorList';
 import AdminSpecialtyList from '../pages/admin/AdminSpecialtyList';
 import AdminUserList from '../pages/admin/AdminUserList';
 import AdminPatientList from '../pages/admin/AdminPatientList';
+import AdminAppointmentList from '../pages/admin/AdminAppointmentList';
+import AdminInvoiceList from '../pages/admin/AdminInvoiceList';
+import AdminBooking from '../pages/admin/AdminBooking';
 import NotFound from '../pages/error/NotFound';
 import Unauthorized from '../pages/error/Unauthorized';
 import ProtectedRoute from './ProtectedRoute';
@@ -105,13 +108,16 @@ const AppRoutes = () => {
           <Route path="/doctor-appointments" element={<Navigate to="/doctor/appointments" replace />} />
 
           {/* ADMIN Routes */}
-          <Route path="/admin" element={<RoleGuard allowedRoles={['ADMIN']} />}>
+          <Route path="/admin" element={<RoleGuard allowedRoles={['ADMIN', 'RECEPTIONIST']} />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="doctors" element={<AdminDoctorList />} />
               <Route path="specialties" element={<AdminSpecialtyList />} />
               <Route path="users" element={<AdminUserList />} />
               <Route path="patients" element={<AdminPatientList />} />
+              <Route path="appointments" element={<AdminAppointmentList />} />
+              <Route path="invoices" element={<AdminInvoiceList />} />
+              <Route path="booking" element={<AdminBooking />} />
             </Route>
           </Route>
 

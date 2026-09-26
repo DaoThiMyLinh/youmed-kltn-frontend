@@ -4,7 +4,7 @@ import { userService } from '../../services/user.service';
 import type { User, Role } from '../../types/user';
 import type { AdminUpdateUserRequest } from '../../services/user.service';
 import { Card, Badge, ErrorMessage, EmptyState, Button } from '../../components';
-import { FiUsers, FiLock, FiUnlock, FiEdit2, FiX } from 'react-icons/fi';
+import { FiUsers, FiLock, FiUnlock, FiEdit2, FiX, FiPlus } from 'react-icons/fi';
 import { selectAuth } from '../../store/features/auth/authSlice';
 import { useTranslation } from 'react-i18next';
 
@@ -144,6 +144,9 @@ const AdminUserList = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('admin.usersList', 'Quản lý Người dùng')}</h1>
           <p className="text-slate-500 text-sm mt-1">{t('admin.usersDesc', 'Phân quyền và quản lý tài khoản người dùng.')}</p>
         </div>
+        <Button onClick={() => window.open('/register', '_blank')} leftIcon={<FiPlus />}>
+          {t('admin.addUser', 'Thêm Người dùng')}
+        </Button>
       </div>
 
       <Card className="p-4 border-0 shadow-sm ring-1 ring-slate-200">
@@ -169,6 +172,7 @@ const AdminUserList = () => {
               <option value="ALL">{t('admin.role.all', 'Tất cả quyền')}</option>
               <option value="ADMIN">{t('admin.role.admin', 'Quản trị viên')}</option>
               <option value="DOCTOR">{t('admin.role.doctor', 'Bác sĩ')}</option>
+              <option value="RECEPTIONIST">{t('admin.role.receptionist', 'Lễ tân')}</option>
               <option value="PATIENT">{t('admin.role.patient', 'Bệnh nhân')}</option>
               <option value="DEPARTMENT_MANAGER">{t('admin.role.manager', 'Quản lý chuyên khoa')}</option>
             </select>
@@ -223,7 +227,8 @@ const AdminUserList = () => {
                         <Badge variant={
                           user.role === 'ADMIN' ? 'primary' :
                           user.role === 'DOCTOR' ? 'success' :
-                          user.role === 'DEPARTMENT_MANAGER' ? 'warning' : 'secondary'
+                          user.role === 'DEPARTMENT_MANAGER' ? 'warning' : 
+                          user.role === 'RECEPTIONIST' ? 'info' : 'secondary'
                         }>
                           {user.role}
                         </Badge>
@@ -318,6 +323,7 @@ const AdminUserList = () => {
                     <option value="PATIENT">{t('admin.role.patient', 'Bệnh nhân')}</option>
                     <option value="DOCTOR">{t('admin.role.doctor', 'Bác sĩ')}</option>
                     <option value="DEPARTMENT_MANAGER">{t('admin.role.manager', 'Quản lý chuyên khoa')}</option>
+                    <option value="RECEPTIONIST">{t('admin.role.receptionist', 'Lễ tân')}</option>
                     <option value="ADMIN">{t('admin.role.admin', 'Quản trị viên')}</option>
                   </select>
                   <p className="mt-1 text-xs text-amber-600">

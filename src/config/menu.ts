@@ -35,5 +35,11 @@ export const menuConfig: Record<string, MenuItem[]> = {
     { title: 'Profile', path: '/manager/profile', icon: FiUser },
     { title: 'Doctors', path: '/manager/doctors', icon: FiUser },
     { title: 'Schedule Approval', path: '/manager/schedules', icon: FiCalendar },
+  ],
+  RECEPTIONIST: [
+    { title: 'Dashboard', path: '/admin', icon: FiHome },
+    { title: 'Patients', path: '/admin/patients', icon: FiHeart },
+    { title: 'Appointments', path: '/admin/appointments', icon: FiCalendar },
+    { title: 'Invoices', path: '/admin/invoices', icon: FiFileText },
   ]
 };

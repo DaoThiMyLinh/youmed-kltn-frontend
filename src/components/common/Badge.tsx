@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
 }
 
 export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', className, ...props }) => {
@@ -12,6 +12,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', className, ..
     success: 'bg-green-100 text-green-700',
     warning: 'bg-yellow-100 text-yellow-700',
     danger: 'bg-red-100 text-red-700',
+    info: 'bg-blue-100 text-blue-700',
   };
 
   return (

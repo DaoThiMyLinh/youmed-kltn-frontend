@@ -156,13 +156,22 @@ const AdminPatientList = () => {
                       {formatDate(patient.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => openDetailModal(patient)} 
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors inline-flex items-center gap-1"
-                        title="Xem chi tiết"
-                      >
-                        <FiEye />
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => window.location.href = `/admin/booking?patientId=${patient.id}`}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1"
+                          title="Đặt lịch khám"
+                        >
+                          <FiCalendar />
+                        </button>
+                        <button 
+                          onClick={() => openDetailModal(patient)} 
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors inline-flex items-center gap-1"
+                          title="Xem chi tiết"
+                        >
+                          <FiEye />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -30,7 +30,7 @@ const Login = () => {
         navigate('/manager');
       } else if (role === 'DOCTOR') {
         navigate('/doctor');
-      } else if (role === 'ADMIN') {
+      } else if (role === 'ADMIN' || role === 'RECEPTIONIST') {
         navigate('/admin');
       } else {
         navigate('/patient');

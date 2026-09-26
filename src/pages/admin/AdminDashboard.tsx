@@ -6,8 +6,15 @@ import { doctorService } from '../../services/doctor.service';
 import { specialtyService } from '../../services/specialty.service';
 import { userService } from '../../services/user.service';
 import { Card } from '../../components';
+import { getRole } from '../../utils/token';
+import ReceptionistDashboard from './ReceptionistDashboard';
 
 const AdminDashboard = () => {
+  const role = getRole();
+  if (role === 'RECEPTIONIST') {
+    return <ReceptionistDashboard />;
+  }
+
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
