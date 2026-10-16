@@ -158,6 +158,7 @@ const AdminInvoiceList = () => {
               <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
                 <tr>
                   <th className="px-6 py-4">Mã HĐ</th>
+                  <th className="px-6 py-4">Thời gian</th>
                   <th className="px-6 py-4">Loại phí</th>
                   <th className="px-6 py-4">Mô tả</th>
                   <th className="px-6 py-4">Bệnh nhân</th>
@@ -171,6 +172,18 @@ const AdminInvoiceList = () => {
                   <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-mono font-medium text-slate-900">
                       #{inv.id}
+                    </td>
+                    <td className="px-6 py-4 text-xs">
+                      <div className="font-semibold text-slate-900">
+                        {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('vi-VN') : '—'}
+                      </div>
+                      {inv.paymentDate ? (
+                        <div className="text-emerald-600 font-medium text-[11px] mt-0.5">
+                          Đã thu: {new Date(inv.paymentDate).toLocaleDateString('vi-VN')} {new Date(inv.paymentDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      ) : (
+                        <div className="text-amber-500 text-[11px] mt-0.5">Chờ thu tiền</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-700">
                       {getTypeLabel(inv.type)}
