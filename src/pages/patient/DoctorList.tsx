@@ -253,10 +253,14 @@ const DoctorList = () => {
                       </div>
                       
                       {/* Rating */}
-                      <div className="flex items-center gap-1.5 text-yellow-400 mb-5 bg-yellow-50/50 w-fit px-3 py-1.5 rounded-full border border-yellow-100/50">
-                        <FiStar className="fill-current w-4 h-4" />
-                        <span className="text-slate-800 font-bold text-sm">5.0</span>
-                        <span className="text-slate-400 text-xs font-medium ml-0.5">(120+)</span>
+                      <div className="flex items-center gap-1.5 text-amber-500 mb-5 bg-amber-50/60 w-fit px-3 py-1.5 rounded-full border border-amber-100/60">
+                        <FiStar className="fill-current w-4 h-4 text-amber-400" />
+                        <span className="text-slate-800 font-bold text-sm">
+                          {doctor.averageRating && doctor.averageRating > 0 ? doctor.averageRating.toFixed(1) : 'Chưa có'}
+                        </span>
+                        <span className="text-slate-400 text-xs font-medium ml-0.5">
+                          ({doctor.totalReviews || 0})
+                        </span>
                       </div>
                       
                       {/* Bio & Info */}

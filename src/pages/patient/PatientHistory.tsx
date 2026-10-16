@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../../components';
-import { FiClock, FiFileText, FiUser, FiCalendar, FiInfo, FiActivity } from 'react-icons/fi';
+import { Button, DoctorReviewModal } from '../../components';
+import { FiClock, FiFileText, FiUser, FiCalendar, FiInfo, FiActivity, FiStar } from 'react-icons/fi';
 import { fetchAppointmentsThunk, selectPatientAppointments, selectPatientLoading } from '../../store/features/patient/patientSlice';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -14,7 +14,19 @@ const PatientHistory = () => {
   const appointments = useSelector(selectPatientAppointments);
   const loading = useSelector(selectPatientLoading);
 
+  const [selectedAppointmentForReview, setSelectedAppointmentForReview] = useState<any>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
   const historyAppointments = appointments.filter(apt => apt.status === 'COMPLETED' || apt.status === 'CANCELLED');
+
+  const handleOpenReview = (apt: any) => {
+    setSelectedAppointmentForReview(apt);
+    setIsReviewModalOpen(true);
+  };
+
+  const handleReviewSuccess = () => {
+    dispatch(fetchAppointmentsThunk());
+  };
 
   useEffect(() => {
     dispatch(fetchAppointmentsThunk());
@@ -127,10 +139,33 @@ const PatientHistory = () => {
                 </div>
 
                 {/* Right: Action */}
-                <div className="flex flex-col items-start md:items-end border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 gap-4 md:w-1/4 justify-center">
+                <div className="flex flex-col items-start md:items-end border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 gap-3 md:w-1/4 justify-center">
                   <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(apt.status)}`}>
                     {t(`status.${apt.status}`)}
                   </div>
+
+                  {/* Review action: only for COMPLETED appointments */}
+                  {apt.status === 'COMPLETED' && (
+                    apt.hasReviewed ? (
+                      <button
+                        onClick={() => handleOpenReview(apt)}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-800 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                        title="Bấm để xem lại đánh giá của bạn"
+                      >
+                        <FiStar className="fill-amber-400 text-amber-500 w-3.5 h-3.5" />
+                        <span>{apt.reviewRating ? `${apt.reviewRating} sao · Đã đánh giá` : 'Đã đánh giá'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleOpenReview(apt)}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                      >
+                        <FiStar className="w-3.5 h-3.5 fill-white text-white" />
+                        <span>Đánh giá bác sĩ</span>
+                      </button>
+                    )
+                  )}
+
                   <Button 
                     className="w-full md:w-auto bg-slate-900 hover:bg-emerald-600 text-white rounded-xl shadow-md transition-colors font-medium px-6 py-2.5"
                     leftIcon={<FiInfo />}
@@ -145,6 +180,14 @@ const PatientHistory = () => {
           ))}
         </motion.div>
       )}
+
+      {/* Review Modal */}
+      <DoctorReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        appointment={selectedAppointmentForReview}
+        onSuccess={handleReviewSuccess}
+      />
     </div>
   );
 };

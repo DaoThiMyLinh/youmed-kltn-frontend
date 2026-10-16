@@ -12,6 +12,8 @@ export interface Doctor {
   active: boolean;
   role?: Role;
   createdAt: string;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 export interface TimeSlot {
