@@ -213,9 +213,20 @@ const DoctorDashboard = () => {
                   </div>
 
                   <div className="mt-auto">
-                    <Link to={`/doctor/consultation/${upcomingAppointment.id}`}>
-                      <Button className="w-full sm:w-auto bg-slate-900 hover:bg-emerald-600 shadow-md">
-                        Tiến hành Khám bệnh
+                    <Link 
+                      to={`/doctor/consultation/${upcomingAppointment.id}`}
+                      state={{ appointment: upcomingAppointment }}
+                    >
+                      <Button className={`w-full sm:w-auto shadow-md ${
+                        upcomingAppointment.status === 'CHECKED_IN' || upcomingAppointment.status === 'IN_PROGRESS'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : 'bg-slate-800 hover:bg-slate-900 text-white'
+                      }`}>
+                        {upcomingAppointment.status === 'CHECKED_IN'
+                          ? 'Tiến hành Khám bệnh'
+                          : upcomingAppointment.status === 'IN_PROGRESS'
+                          ? 'Tiếp tục Khám bệnh'
+                          : 'Vào phòng khám (Chờ Lễ tân tiếp nhận)'}
                       </Button>
                     </Link>
                   </div>

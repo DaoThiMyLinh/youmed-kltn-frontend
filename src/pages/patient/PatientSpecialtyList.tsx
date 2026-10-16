@@ -125,27 +125,7 @@ const PatientSpecialtyList = () => {
                   
                   <div className="relative z-10 flex flex-col h-full">
                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm border border-emerald-100/50 group-hover:border-transparent">
-                      {specialty.imageUrl && specialty.imageUrl !== 'string' ? (
-                        <img 
-                          src={specialty.imageUrl} 
-                          alt={specialty.name} 
-                          className="w-8 h-8 object-contain"
-                          onError={(e) => {
-                            // Fallback to icon if image fails to load
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            (e.target as HTMLImageElement).parentElement?.classList.add('fallback-icon');
-                          }} 
-                        />
-                      ) : (
-                        <FiActivity className="w-8 h-8 fallback-icon-default" />
-                      )}
-                      {/* Hidden fallback icon for image error */}
-                      {specialty.imageUrl && specialty.imageUrl !== 'string' && (
-                        <FiActivity className="w-8 h-8 hidden fallback-icon-show" />
-                      )}
-                      <style>{`
-                        .fallback-icon .fallback-icon-show { display: block !important; }
-                      `}</style>
+                      <FiActivity className="w-8 h-8 fallback-icon-default" />
                     </div>
                     
                     <h3 className="font-extrabold text-xl text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">{specialty.name}</h3>

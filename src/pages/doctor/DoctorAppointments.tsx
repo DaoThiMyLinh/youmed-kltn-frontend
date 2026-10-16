@@ -152,11 +152,15 @@ const DoctorAppointments = () => {
                     {t(`status.${apt.status}`)}
                   </div>
                   <Button 
-                    className="w-full md:w-auto bg-slate-900 hover:bg-emerald-600 text-white rounded-xl shadow-md transition-colors font-medium px-6 py-2.5"
+                    className={`w-full md:w-auto text-white rounded-xl shadow-md transition-colors font-medium px-6 py-2.5 ${
+                      apt.status === 'CHECKED_IN' || apt.status === 'IN_PROGRESS'
+                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                        : 'bg-slate-900 hover:bg-slate-800'
+                    }`}
                     rightIcon={<FiArrowRight />} 
                     onClick={() => navigate(`/doctor/consultation/${apt.id}`, { state: { appointment: apt } })}
                   >
-                    Tiến hành Khám
+                    {apt.status === 'CHECKED_IN' ? 'Tiến hành Khám' : apt.status === 'IN_PROGRESS' ? 'Tiếp tục Khám' : 'Xem phòng khám'}
                   </Button>
                 </div>
 

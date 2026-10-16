@@ -3,6 +3,12 @@ import MainLayout from '../layouts/MainLayout';
 import PatientLayout from '../layouts/patient/PatientLayout';
 import DoctorLayout from '../layouts/doctor/DoctorLayout';
 import AdminLayout from '../layouts/admin/AdminLayout';
+import ManagerLayout from '../layouts/manager/ManagerLayout';
+import ManagerDoctorList from '../pages/manager/ManagerDoctorList';
+import ManagerScheduleApproval from '../pages/manager/ManagerScheduleApproval';
+import ManagerDashboard from '../pages/manager/ManagerDashboard';
+import ManagerProfile from '../pages/manager/ManagerProfile';
+import ManagerProfileEdit from '../pages/manager/ManagerProfileEdit';
 
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
@@ -26,6 +32,13 @@ import ConsultationHistory from '../pages/doctor/ConsultationHistory';
 import DoctorProfile from '../pages/doctor/DoctorProfile';
 import DoctorProfileEdit from '../pages/doctor/DoctorProfileEdit';
 import AdminDashboard from '../pages/admin/AdminDashboard';
+import AdminDoctorList from '../pages/admin/AdminDoctorList';
+import AdminSpecialtyList from '../pages/admin/AdminSpecialtyList';
+import AdminUserList from '../pages/admin/AdminUserList';
+import AdminPatientList from '../pages/admin/AdminPatientList';
+import AdminAppointmentList from '../pages/admin/AdminAppointmentList';
+import AdminInvoiceList from '../pages/admin/AdminInvoiceList';
+import AdminBooking from '../pages/admin/AdminBooking';
 import NotFound from '../pages/error/NotFound';
 import Unauthorized from '../pages/error/Unauthorized';
 import ProtectedRoute from './ProtectedRoute';
@@ -95,9 +108,26 @@ const AppRoutes = () => {
           <Route path="/doctor-appointments" element={<Navigate to="/doctor/appointments" replace />} />
 
           {/* ADMIN Routes */}
-          <Route path="/admin" element={<RoleGuard allowedRoles={['ADMIN']} />}>
+          <Route path="/admin" element={<RoleGuard allowedRoles={['ADMIN', 'RECEPTIONIST']} />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="doctors" element={<AdminDoctorList />} />
+              <Route path="specialties" element={<AdminSpecialtyList />} />
+              <Route path="users" element={<AdminUserList />} />
+              <Route path="patients" element={<AdminPatientList />} />
+              <Route path="appointments" element={<AdminAppointmentList />} />
+              <Route path="invoices" element={<AdminInvoiceList />} />
+              <Route path="booking" element={<AdminBooking />} />
+            </Route>
+          </Route>
+
+          <Route path="/manager" element={<RoleGuard allowedRoles={['DEPARTMENT_MANAGER']} />}>
+            <Route element={<ManagerLayout />}>
+              <Route index element={<ManagerDashboard />} />
+              <Route path="profile" element={<ManagerProfile />} />
+              <Route path="profile/edit" element={<ManagerProfileEdit />} />
+              <Route path="doctors" element={<ManagerDoctorList />} />
+              <Route path="schedules" element={<ManagerScheduleApproval />} />
             </Route>
           </Route>
 
