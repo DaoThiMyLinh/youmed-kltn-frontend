@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { FiArrowLeft, FiCalendar, FiUser, FiFileText, FiClipboard, FiClock, FiActivity, FiCheckCircle } from 'react-icons/fi';
-import { selectPatientAppointments } from '../../store/features/patient/patientSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { FiArrowLeft, FiCalendar, FiUser, FiFileText, FiClipboard, FiClock, FiActivity, FiCheckCircle, FiStar } from 'react-icons/fi';
+import { selectPatientAppointments, fetchAppointmentsThunk } from '../../store/features/patient/patientSlice';
 import { consultationService } from '../../services/consultation.service';
+import { DoctorReviewModal } from '../../components';
 import type { MedicalRecord, Prescription } from '../../types/consultation';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -11,6 +12,7 @@ import { motion } from 'framer-motion';
 const PatientAppointmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<any>();
   const location = useLocation();
   const appointments = useSelector(selectPatientAppointments);
   const { t } = useTranslation();
@@ -18,6 +20,7 @@ const PatientAppointmentDetail = () => {
   const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null);
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [loadingRecord, setLoadingRecord] = useState(true);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const stateAppointment = location.state?.appointment;
   const appointment = stateAppointment || appointments.find(a => a.id === Number(id));
@@ -93,8 +96,29 @@ const PatientAppointmentDetail = () => {
           <FiArrowLeft /> Quay lại
         </button>
         <h1 className="text-lg font-bold text-slate-900 hidden sm:block">Chi tiết lịch hẹn</h1>
-        <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${getStatusColor(appointment.status)}`}>
-          {t(`status.${appointment.status}`)}
+        <div className="flex items-center gap-3">
+          {appointment.status === 'COMPLETED' && (
+            appointment.hasReviewed ? (
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-800 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
+              >
+                <FiStar className="fill-amber-400 text-amber-500 w-3.5 h-3.5" />
+                <span>{appointment.reviewRating ? `${appointment.reviewRating} sao · Đã đánh giá` : 'Đã đánh giá'}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                <FiStar className="w-3.5 h-3.5 fill-white" />
+                <span>Đánh giá bác sĩ</span>
+              </button>
+            )
+          )}
+          <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${getStatusColor(appointment.status)}`}>
+            {t(`status.${appointment.status}`)}
+          </div>
         </div>
       </motion.div>
 
@@ -264,6 +288,15 @@ const PatientAppointmentDetail = () => {
         )}
       </motion.div>
 
+      {/* Doctor Review Modal */}
+      <DoctorReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        appointment={appointment}
+        onSuccess={() => {
+          dispatch(fetchAppointmentsThunk());
+        }}
+      />
     </div>
   );
 };

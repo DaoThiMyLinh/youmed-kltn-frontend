@@ -24,6 +24,9 @@ export interface Appointment {
   reason: string;
   status: AppointmentStatus;
   createdAt: string;
+  hasReviewed?: boolean;
+  reviewRating?: number;
+  reviewId?: number;
 }
 
 export interface UpdateProfileRequest {
