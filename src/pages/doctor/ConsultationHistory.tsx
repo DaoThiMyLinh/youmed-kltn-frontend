@@ -15,6 +15,7 @@ interface HistoryItem {
   diagnosisOrReason: string;
   appointmentId: number;
   fullAppointment?: any;
+  followUpDate?: string;
 }
 
 const ConsultationHistory = () => {
@@ -43,7 +44,8 @@ const ConsultationHistory = () => {
         patientId: mr.patientId,
         diagnosisOrReason: `${t('appointment.diagnosis')}: ${mr.diagnosis}`,
         appointmentId: mr.appointmentId,
-        fullAppointment: appointmentsRes.content.find(a => a.id === mr.appointmentId)
+        fullAppointment: appointmentsRes.content.find(a => a.id === mr.appointmentId),
+        followUpDate: mr.followUpDate
       }));
 
       const cancelledAppointments: HistoryItem[] = appointmentsRes.content
@@ -196,6 +198,12 @@ const ConsultationHistory = () => {
                         </span>
                         {record.diagnosisOrReason.split(': ')[1]}
                      </p>
+                     {record.followUpDate && (
+                       <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                         <FiCalendar className="w-3.5 h-3.5 text-emerald-600" />
+                         <span>Hẹn tái khám: {new Date(record.followUpDate).toLocaleDateString('vi-VN')}</span>
+                       </div>
+                     )}
                   </div>
                 </div>
 

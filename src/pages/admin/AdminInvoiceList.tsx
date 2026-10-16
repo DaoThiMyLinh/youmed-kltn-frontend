@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
-import { Card, Badge, ErrorMessage, EmptyState, Button, Input } from '../../components';
-import { FiDollarSign, FiSearch, FiCheckCircle, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import { Card, Badge, ErrorMessage, EmptyState, Button, Input, PrintReceiptModal } from '../../components';
+import { FiDollarSign, FiSearch, FiCheckCircle, FiChevronLeft, FiChevronRight, FiX, FiPrinter } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
 interface Invoice {
@@ -38,6 +38,10 @@ const AdminInvoiceList = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
+
+  // Receipt Print Modal State
+  const [printReceiptModalOpen, setPrintReceiptModalOpen] = useState(false);
+  const [receiptInvoice, setReceiptInvoice] = useState<Invoice | null>(null);
 
   const fetchInvoices = async () => {
     try {
@@ -203,15 +207,31 @@ const AdminInvoiceList = () => {
                       {getStatusBadge(inv.status)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {inv.status === 'PENDING' && (
-                        <Button 
-                          size="sm"
-                          onClick={() => handleOpenPayment(inv)}
-                          leftIcon={<FiCheckCircle />}
-                        >
-                          Thanh toán
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {inv.status === 'PAID' && (
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setReceiptInvoice(inv);
+                              setPrintReceiptModalOpen(true);
+                            }}
+                            leftIcon={<FiPrinter className="text-emerald-600" />}
+                            className="border-slate-200 text-slate-700 hover:text-emerald-700 hover:border-emerald-300 font-medium"
+                          >
+                            In biên lai
+                          </Button>
+                        )}
+                        {inv.status === 'PENDING' && (
+                          <Button 
+                            size="sm"
+                            onClick={() => handleOpenPayment(inv)}
+                            leftIcon={<FiCheckCircle />}
+                          >
+                            Thanh toán
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -308,6 +328,13 @@ const AdminInvoiceList = () => {
           </div>
         </div>
       )}
+
+      {/* Print Receipt Modal */}
+      <PrintReceiptModal
+        isOpen={printReceiptModalOpen}
+        onClose={() => setPrintReceiptModalOpen(false)}
+        invoice={receiptInvoice}
+      />
     </div>
   );
 };
