@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { FiUsers, FiCalendar, FiClock, FiDollarSign, FiCheckCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { Card } from '../../components';
 
 const ReceptionistDashboard = () => {
-  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     appointmentsToday: 0,

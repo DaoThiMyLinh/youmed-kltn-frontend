@@ -6,6 +6,14 @@ export interface AdminUpdateUserRequest {
   enabled: boolean;
 }
 
+export interface AdminCreateUserRequest {
+  fullName: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  role: Role;
+}
+
 export const userService = {
   getAllUsers: async (
     page: number = 0,
@@ -49,6 +57,11 @@ export const userService = {
 
   adminUpdateUserStatus: async (id: number, data: AdminUpdateUserRequest): Promise<User> => {
     const response = await axiosClient.put<User>(`/users/${id}/admin`, data);
+    return response.data;
+  },
+
+  createUser: async (data: AdminCreateUserRequest): Promise<User> => {
+    const response = await axiosClient.post<User>('/users', data);
     return response.data;
   }
 };

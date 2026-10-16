@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getAllAppointments, checkInPatient } from '../../services/appointment.service';
 import type { Appointment, AppointmentStatus } from '../../types/patient';
 import { Card, Badge, ErrorMessage, EmptyState, Button } from '../../components';
 import { FiCalendar, FiCheckCircle } from 'react-icons/fi';
-import { useTranslation } from 'react-i18next';
 
 const AdminAppointmentList = () => {
-  const { t } = useTranslation();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -7,6 +7,7 @@ import { Card, Badge, ErrorMessage, EmptyState, Button } from '../../components'
 import { FiUsers, FiLock, FiUnlock, FiEdit2, FiX, FiPlus } from 'react-icons/fi';
 import { selectAuth } from '../../store/features/auth/authSlice';
 import { useTranslation } from 'react-i18next';
+import { CreateUserModal } from './CreateUserModal';
 
 const AdminUserList = () => {
   const { t } = useTranslation();
@@ -34,6 +35,7 @@ const AdminUserList = () => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   
@@ -137,6 +139,28 @@ const AdminUserList = () => {
     }
   };
 
+  const getAvailableRoles = (): { value: Role; label: string }[] => {
+    if (editingUser?.role === 'DOCTOR') {
+      return [
+        { value: 'DOCTOR', label: `${t('admin.role.doctor', 'Bác sĩ')} (Hiện tại)` },
+        { value: 'DEPARTMENT_MANAGER', label: t('admin.role.manager', 'Trưởng khoa') }
+      ];
+    }
+
+    if (editingUser?.role === 'DEPARTMENT_MANAGER') {
+      return [
+        { value: 'DEPARTMENT_MANAGER', label: `${t('admin.role.manager', 'Trưởng khoa')} (Hiện tại)` },
+        { value: 'DOCTOR', label: t('admin.role.doctor', 'Bác sĩ') }
+      ];
+    }
+
+    return [
+      { value: 'PATIENT', label: t('admin.role.patient', 'Bệnh nhân') },
+      { value: 'RECEPTIONIST', label: t('admin.role.receptionist', 'Lễ tân') },
+      { value: 'ADMIN', label: t('admin.role.admin', 'Quản trị viên') }
+    ];
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -144,7 +168,7 @@ const AdminUserList = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('admin.usersList', 'Quản lý Người dùng')}</h1>
           <p className="text-slate-500 text-sm mt-1">{t('admin.usersDesc', 'Phân quyền và quản lý tài khoản người dùng.')}</p>
         </div>
-        <Button onClick={() => window.open('/register', '_blank')} leftIcon={<FiPlus />}>
+        <Button onClick={() => setIsCreateModalOpen(true)} leftIcon={<FiPlus />}>
           {t('admin.addUser', 'Thêm Người dùng')}
         </Button>
       </div>
@@ -320,15 +344,21 @@ const AdminUserList = () => {
                     onChange={(e) => setFormData({...formData, role: e.target.value as Role})}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
                   >
-                    <option value="PATIENT">{t('admin.role.patient', 'Bệnh nhân')}</option>
-                    <option value="DOCTOR">{t('admin.role.doctor', 'Bác sĩ')}</option>
-                    <option value="DEPARTMENT_MANAGER">{t('admin.role.manager', 'Quản lý chuyên khoa')}</option>
-                    <option value="RECEPTIONIST">{t('admin.role.receptionist', 'Lễ tân')}</option>
-                    <option value="ADMIN">{t('admin.role.admin', 'Quản trị viên')}</option>
+                    {getAvailableRoles().map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
                   </select>
-                  <p className="mt-1 text-xs text-amber-600">
-                    Lưu ý: Thay đổi quyền có thể ảnh hưởng đến khả năng truy cập hệ thống của người dùng.
-                  </p>
+                  {editingUser?.role === 'DOCTOR' ? (
+                    <p className="mt-1 text-xs text-emerald-600">
+                      💡 Bác sĩ có thể được bổ nhiệm lên vai trò <strong>Trưởng khoa</strong>.
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-amber-600">
+                      Lưu ý: Thay đổi quyền có thể ảnh hưởng đến khả năng truy cập hệ thống của người dùng.
+                    </p>
+                  )}
                 </div>
                 
                 <div className="flex items-center gap-2 pt-2">
@@ -357,6 +387,15 @@ const AdminUserList = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Thêm Người dùng hợp nhất */}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          fetchUsers();
+        }}
+      />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Toast, ErrorMessage } from '../../components';
-import { fetchDoctorsThunk, fetchSpecialtiesThunk, fetchTimeSlotsThunk, submitAppointmentThunk, selectDoctors, selectSpecialties, selectAppointmentLoading, selectAppointmentError, selectBookingSuccess, resetBookingSuccess } from '../../store/features/appointment/appointmentSlice';
+import { fetchDoctorsThunk, fetchSpecialtiesThunk, fetchTimeSlotsThunk, selectDoctors, selectSpecialties, selectAppointmentLoading, selectAppointmentError, selectBookingSuccess, resetBookingSuccess } from '../../store/features/appointment/appointmentSlice';
 import { FiUser, FiCalendar, FiClock, FiCheckCircle, FiChevronRight, FiActivity } from 'react-icons/fi';
 import type { Doctor, TimeSlot } from '../../types/appointment';
 import type { Specialty } from '../../types/specialty';

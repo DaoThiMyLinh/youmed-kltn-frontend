@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { doctorService } from '../../services/doctor.service';
-import type { DoctorCreateRequest, DoctorUpdateRequest } from '../../services/doctor.service';
+import type { DoctorUpdateRequest } from '../../services/doctor.service';
 import { getActiveSpecialties } from '../../services/specialty.service';
 import type { Doctor } from '../../types/appointment';
 import type { Specialty } from '../../types/specialty';
 import { Card, Badge, ErrorMessage, EmptyState, Button, Input } from '../../components';
-import { FiUsers, FiPlus, FiEdit2, FiLock, FiUnlock, FiTrash2, FiX } from 'react-icons/fi';
+import { FiUsers, FiEdit2, FiLock, FiUnlock, FiTrash2, FiX } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
 const AdminDoctorList = () => {
@@ -33,6 +33,24 @@ const AdminDoctorList = () => {
     consultationFee: '0',
     biography: ''
   });
+
+  const uniqueSpecialties = React.useMemo(() => {
+    const map = new Map<string, typeof specialties[0]>();
+    for (const s of specialties) {
+      const key = s.name.trim().toLowerCase();
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, s);
+      } else {
+        if (s.id.toString() === formData.specialtyId) {
+          map.set(key, s);
+        } else if (!existing.managerName && s.managerName) {
+          map.set(key, s);
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [specialties, formData.specialtyId]);
 
   const fetchDoctors = async () => {
     try {
@@ -72,19 +90,6 @@ const AdminDoctorList = () => {
     fetchSpecialties();
   }, []);
 
-  const openAddModal = () => {
-    setEditingDoctor(null);
-    setFormData({
-      fullName: '',
-      email: '',
-      phone: '',
-      specialtyId: specialties.length > 0 ? specialties[0].id.toString() : '',
-      consultationFee: '0',
-      biography: ''
-    });
-    setIsModalOpen(true);
-  };
-
   const openEditModal = (doctor: Doctor) => {
     setEditingDoctor(doctor);
     setFormData({
@@ -110,28 +115,18 @@ const AdminDoctorList = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingDoctor) return;
+
     try {
       setIsSubmitting(true);
-      if (editingDoctor) {
-        const updateData: DoctorUpdateRequest = {
-          fullName: formData.fullName,
-          phone: formData.phone,
-          specialtyId: formData.specialtyId ? parseInt(formData.specialtyId) : undefined,
-          consultationFee: parseInt(formData.consultationFee),
-          biography: formData.biography
-        };
-        await doctorService.updateDoctor(editingDoctor.id, updateData);
-      } else {
-        const createData: DoctorCreateRequest = {
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          specialtyId: formData.specialtyId ? parseInt(formData.specialtyId) : undefined,
-          consultationFee: parseInt(formData.consultationFee),
-          biography: formData.biography
-        };
-        await doctorService.createDoctor(createData);
-      }
+      const updateData: DoctorUpdateRequest = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        specialtyId: formData.specialtyId ? parseInt(formData.specialtyId) : undefined,
+        consultationFee: parseInt(formData.consultationFee),
+        biography: formData.biography
+      };
+      await doctorService.updateDoctor(editingDoctor.id, updateData);
       closeModal();
       fetchDoctors();
     } catch (err: any) {
@@ -179,9 +174,6 @@ const AdminDoctorList = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t('admin.doctorsList', 'Quản lý Bác sĩ')}</h1>
           <p className="text-slate-500 text-sm mt-1">{t('admin.doctorsDesc', 'Quản lý danh sách bác sĩ trên toàn hệ thống.')}</p>
         </div>
-        <Button onClick={openAddModal} leftIcon={<FiPlus />}>
-          {t('admin.addDoctor', 'Thêm Bác sĩ')}
-        </Button>
       </div>
 
       <Card className="p-4 border-0 shadow-sm ring-1 ring-slate-200">
@@ -243,7 +235,14 @@ const AdminDoctorList = () => {
                 {doctors.map((doctor) => (
                   <tr key={doctor.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">{doctor.fullName}</div>
+                      <div className="font-semibold text-slate-900 flex items-center gap-2">
+                        {doctor.fullName}
+                        {doctor.role === 'DEPARTMENT_MANAGER' && (
+                          <span className="text-[11px] bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full font-medium">
+                            {t('admin.role.manager', 'Trưởng khoa')}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-slate-600">{doctor.specialty?.name || '-'}</div>
@@ -307,22 +306,54 @@ const AdminDoctorList = () => {
         </Card>
       )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-slate-100 shrink-0">
-              <h3 className="font-semibold text-lg text-slate-800">
-                {editingDoctor ? t('admin.editDoctor', 'Sửa Bác sĩ') : t('admin.addDoctor', 'Thêm Bác sĩ')}
-              </h3>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors p-1">
+      {isModalOpen && editingDoctor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col border border-slate-100">
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm border border-emerald-100/60 font-bold">
+                  <FiEdit2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-800">
+                    {t('admin.editDoctor', 'Sửa thông tin Bác sĩ')}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {editingDoctor.role === 'DEPARTMENT_MANAGER' 
+                      ? 'Hồ sơ chuyên môn & Trưởng khoa phụ trách' 
+                      : 'Cập nhật thông tin chuyên khoa và liên hệ'}
+                  </p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={closeModal} 
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 transition-colors"
+              >
                 <FiX className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="p-4 overflow-y-auto">
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-4">
+              {editingDoctor.role === 'DEPARTMENT_MANAGER' && (
+                <div className="p-3 bg-purple-50/80 border border-purple-100 rounded-lg flex items-center justify-between text-xs text-purple-900">
+                  <span className="font-medium flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+                    Vai trò hiện tại: Trưởng khoa
+                  </span>
+                  <span className="text-purple-700 bg-white px-2 py-0.5 rounded border border-purple-200 font-semibold shadow-xs">
+                    {editingDoctor.specialty?.name || 'Chưa gán khoa'}
+                  </span>
+                </div>
+              )}
+
               <form id="doctor-form" onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.form.fullName', 'Họ tên *')}</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {t('admin.form.fullName', 'Họ và tên')} <span className="text-rose-500">*</span>
+                  </label>
                   <Input 
                     name="fullName"
                     value={formData.fullName}
@@ -330,72 +361,103 @@ const AdminDoctorList = () => {
                     required
                   />
                 </div>
-                {!editingDoctor && (
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.form.email', 'Email *')}</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {t('admin.form.email', 'Email')}
+                    </label>
                     <Input 
                       name="email"
                       type="email"
                       value={formData.email}
+                      disabled
+                      className="bg-slate-50 cursor-not-allowed opacity-75 text-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {t('admin.form.phone', 'Số điện thoại')} <span className="text-rose-500">*</span>
+                    </label>
+                    <Input 
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleFormChange}
                       required
                     />
                   </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.form.phone', 'Số điện thoại *')}</label>
-                  <Input 
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleFormChange}
-                    required
-                  />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.form.specialty', 'Chuyên khoa *')}</label>
-                  <select
-                    name="specialtyId"
-                    value={formData.specialtyId}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
-                  >
-                    <option value="">{t('admin.form.selectSpecialty', '-- Chọn chuyên khoa --')}</option>
-                    {specialties.map(spec => (
-                      <option key={spec.id} value={spec.id}>{spec.name}</option>
-                    ))}
-                  </select>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {t('admin.form.specialty', 'Chuyên khoa')} <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      name="specialtyId"
+                      value={formData.specialtyId}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white text-sm"
+                    >
+                      <option value="">{t('admin.form.selectSpecialty', '-- Chọn chuyên khoa --')}</option>
+                      {uniqueSpecialties.map(spec => {
+                        const isManager = editingDoctor?.role === 'DEPARTMENT_MANAGER';
+                        const isCurrent = spec.id.toString() === formData.specialtyId || spec.name?.toLowerCase() === editingDoctor.specialty?.name?.toLowerCase();
+                        const hasOtherManager = isManager && !!spec.managerName && !isCurrent;
+                        return (
+                          <option 
+                            key={spec.id} 
+                            value={spec.id}
+                            disabled={hasOtherManager}
+                            className={hasOtherManager ? 'text-slate-400 bg-slate-50' : ''}
+                          >
+                            {spec.name} {isCurrent ? '(Hiện tại)' : hasOtherManager ? `(Đã có TK: ${spec.managerName})` : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {t('admin.form.fee', 'Phí khám (VNĐ)')} <span className="text-rose-500">*</span>
+                    </label>
+                    <Input 
+                      name="consultationFee"
+                      type="number"
+                      min="0"
+                      step="10000"
+                      value={formData.consultationFee}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.form.fee', 'Phí khám (VNĐ) *')}</label>
-                  <Input 
-                    name="consultationFee"
-                    type="number"
-                    min="0"
-                    value={formData.consultationFee}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.form.biography', 'Tiểu sử')}</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {t('admin.form.biography', 'Tiểu sử / Giới thiệu')}
+                  </label>
                   <textarea
                     name="biography"
                     value={formData.biography}
                     onChange={handleFormChange}
                     rows={3}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-shadow"
+                    placeholder="Kinh nghiệm, học vị, bằng cấp..."
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-shadow"
                   />
                 </div>
               </form>
             </div>
             
-            <div className="p-4 border-t border-slate-100 flex justify-end gap-2 shrink-0">
-              <Button variant="outline" onClick={closeModal} type="button">
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
+              <Button variant="outline" onClick={closeModal} type="button" disabled={isSubmitting}>
                 {t('common.cancel', 'Hủy')}
               </Button>
               <Button type="submit" form="doctor-form" isLoading={isSubmitting}>
-                {t('common.save', 'Lưu')}
+                {t('common.save', 'Lưu thay đổi')}
               </Button>
             </div>
           </div>

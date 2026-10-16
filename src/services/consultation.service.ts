@@ -26,6 +26,11 @@ export const consultationService = {
     return response.data;
   },
 
+  getAppointmentById: async (id: number): Promise<Appointment> => {
+    const response = await axiosClient.get<Appointment>(`/appointments/${id}`);
+    return response.data;
+  },
+
   getMedicalRecordByAppointmentId: async (appointmentId: number): Promise<MedicalRecord | null> => {
     try {
       const response = await axiosClient.get<MedicalRecord>(`/medical-records/appointment/${appointmentId}`);

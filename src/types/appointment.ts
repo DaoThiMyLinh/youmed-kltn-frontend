@@ -1,4 +1,5 @@
 import type { Specialty } from './specialty';
+import type { Role } from './user';
 
 export interface Doctor {
   id: number;
@@ -9,6 +10,7 @@ export interface Doctor {
   email: string;
   biography: string;
   active: boolean;
+  role?: Role;
   createdAt: string;
 }
 
