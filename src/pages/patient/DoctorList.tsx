@@ -282,7 +282,7 @@ const DoctorList = () => {
                           Hồ sơ
                         </Link>
                         <Link
-                          to="/patient/booking"
+                          to={`/patient/booking?doctorId=${doctor.id}`}
                           className="flex-[1.5] bg-slate-900 text-white font-semibold py-3 rounded-2xl text-center hover:bg-emerald-600 transition-colors shadow-sm hover:shadow-md"
                         >
                           Đặt lịch
