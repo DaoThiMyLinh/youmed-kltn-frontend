@@ -8,6 +8,7 @@ export interface Doctor {
   phone: string;
   email: string;
   biography: string;
+  imageUrl?: string;
   active: boolean;
   createdAt: string;
 }

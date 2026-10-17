@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { FiSearch, FiUser, FiStar, FiFilter, FiRefreshCw, FiShield } from 'react-icons/fi';
+import { FiSearch, FiStar, FiFilter, FiRefreshCw, FiShield } from 'react-icons/fi';
 import { getActiveDoctors } from '../../services/appointment.service';
 import { getActiveSpecialties } from '../../services/specialty.service';
 import type { Doctor } from '../../types/appointment';
 import type { Specialty } from '../../types/specialty';
 import { motion } from 'framer-motion';
+import DoctorAvatar from '../../components/common/DoctorAvatar';
 
 const DoctorList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -239,10 +240,14 @@ const DoctorList = () => {
                       <div className="flex items-center gap-4 mb-6">
                         <div className="relative">
                           <div className="absolute -inset-1 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full blur opacity-0 group-hover:opacity-40 transition duration-500"></div>
-                          <div className="relative w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-                            <FiUser className="w-8 h-8 text-slate-300" />
-                          </div>
-                          <div className="absolute bottom-0 right-0 bg-emerald-500 border-2 border-white text-white p-1 rounded-full">
+                          <DoctorAvatar
+                            imageUrl={doctor.imageUrl}
+                            email={doctor.email}
+                            fullName={doctor.fullName}
+                            doctorId={doctor.id}
+                            size="md"
+                          />
+                          <div className="absolute bottom-0 right-0 bg-emerald-500 border-2 border-white text-white p-1 rounded-full shadow-xs">
                             <FiShield className="w-3 h-3" />
                           </div>
                         </div>

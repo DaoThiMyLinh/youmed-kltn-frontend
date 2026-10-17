@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiPrinter, FiX, FiCheck } from 'react-icons/fi';
+import { FiPrinter, FiX } from 'react-icons/fi';
 import type { Appointment } from '../../types/patient';
 import type { MedicalRecord, Prescription } from '../../types/consultation';
 

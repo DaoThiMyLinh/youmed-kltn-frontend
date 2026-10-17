@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiSearch, FiArrowRight, FiUser, FiCalendar, FiStar, FiHeart, FiShield, FiActivity } from 'react-icons/fi';
+import { FiSearch, FiArrowRight, FiCalendar, FiStar, FiHeart, FiShield } from 'react-icons/fi';
 import { getActiveDoctorsPublic } from '../../services/appointment.service';
 import { getActiveSpecialtiesPublic } from '../../services/specialty.service';
 import type { Doctor } from '../../types/appointment';
 import type { Specialty } from '../../types/specialty';
 import { motion } from 'framer-motion';
+import DoctorAvatar from '../../components/common/DoctorAvatar';
+import SpecialtyImage from '../../components/common/SpecialtyImage';
+import { getSpecialtyVisual } from '../../utils/medicalImages';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -160,14 +163,20 @@ const Home = () => {
                 <motion.div key={specialty.id} variants={itemVariants}>
                   <Link
                     to={`/patient/doctors?specialty=${specialty.id}`}
-                    className="block bg-white border border-slate-100 p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 group relative overflow-hidden"
+                    className="block bg-white border border-slate-100 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 group relative overflow-hidden"
                   >
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="relative z-10 flex flex-col items-center text-center">
-                      <div className="w-20 h-20 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-emerald-100/50 relative overflow-hidden">
-                        <FiActivity className="w-10 h-10 text-emerald-500 home-fallback-icon-default" />
+                    <div className="relative h-36 w-full overflow-hidden">
+                      <SpecialtyImage
+                        imageUrl={specialty.imageUrl}
+                        specialtyName={specialty.name}
+                        className="w-full h-full rounded-none"
+                      />
+                      <div className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-bold text-slate-800 shadow-xs border border-white/50">
+                        {getSpecialtyVisual(specialty.name).badge}
                       </div>
-                      <h3 className="font-bold text-slate-800 text-lg group-hover:text-emerald-600 transition-colors">{specialty.name}</h3>
+                    </div>
+                    <div className="p-4 text-center">
+                      <h3 className="font-bold text-slate-800 text-base group-hover:text-emerald-600 transition-colors line-clamp-1">{specialty.name}</h3>
                     </div>
                   </Link>
                 </motion.div>
@@ -225,9 +234,13 @@ const Home = () => {
                     <div className="flex flex-col items-center text-center flex-1">
                       <div className="relative mb-6 mt-4">
                         <div className="absolute -inset-2 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full blur opacity-0 group-hover:opacity-40 transition duration-500"></div>
-                        <div className="relative w-28 h-28 bg-slate-50 rounded-full flex items-center justify-center border-4 border-white shadow-md overflow-hidden">
-                          <FiUser className="w-12 h-12 text-slate-300" />
-                        </div>
+                        <DoctorAvatar
+                          imageUrl={doctor.imageUrl}
+                          email={doctor.email}
+                          fullName={doctor.fullName}
+                          doctorId={doctor.id}
+                          size="lg"
+                        />
                         <div className="absolute bottom-0 right-0 bg-emerald-500 border-2 border-white text-white p-1.5 rounded-full shadow-sm">
                           <FiShield className="w-4 h-4" />
                         </div>

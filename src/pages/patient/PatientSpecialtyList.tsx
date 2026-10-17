@@ -4,6 +4,8 @@ import { FiActivity, FiArrowRight, FiRefreshCw, FiSearch } from 'react-icons/fi'
 import { getActiveSpecialties } from '../../services/specialty.service';
 import type { Specialty } from '../../types/specialty';
 import { motion } from 'framer-motion';
+import SpecialtyImage from '../../components/common/SpecialtyImage';
+import { getSpecialtyVisual } from '../../utils/medicalImages';
 
 const PatientSpecialtyList = () => {
   const navigate = useNavigate();
@@ -119,16 +121,23 @@ const PatientSpecialtyList = () => {
               <motion.div key={specialty.id} variants={itemVariants}>
                 <div 
                   onClick={() => handleSpecialtyClick(specialty.id)}
-                  className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer group flex flex-col h-full relative overflow-hidden"
+                  className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer group flex flex-col h-full"
                 >
-                  <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-emerald-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
-                  <div className="relative z-10 flex flex-col h-full">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm border border-emerald-100/50 group-hover:border-transparent">
-                      <FiActivity className="w-8 h-8 fallback-icon-default" />
+                  <div className="relative h-44 w-full overflow-hidden">
+                    <SpecialtyImage
+                      imageUrl={specialty.imageUrl}
+                      specialtyName={specialty.name}
+                      className="w-full h-full rounded-none"
+                    />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm border border-white/50">
+                      {getSpecialtyVisual(specialty.name).badge}
                     </div>
-                    
-                    <h3 className="font-extrabold text-xl text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">{specialty.name}</h3>
+                  </div>
+                  
+                  <div className="p-6 flex flex-col flex-1">
+                    <h3 className="font-extrabold text-xl text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-1">
+                      {specialty.name}
+                    </h3>
                     
                     <p className="text-slate-500 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
                       {specialty.description && specialty.description !== 'string' 
@@ -136,9 +145,9 @@ const PatientSpecialtyList = () => {
                         : 'Khám, chẩn đoán, tư vấn và điều trị chuyên sâu các bệnh lý liên quan đến chuyên khoa này với trang thiết bị hiện đại.'}
                     </p>
                     
-                    <div className="mt-auto flex items-center justify-between text-emerald-600 font-semibold group-hover:text-emerald-700 transition-colors">
+                    <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-emerald-600 font-semibold group-hover:text-emerald-700 transition-colors">
                       <span className="text-sm">Xem danh sách Bác sĩ</span>
-                      <div className="w-8 h-8 rounded-full bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 group-hover:bg-emerald-600 group-hover:text-white flex items-center justify-center transition-all duration-300">
                         <FiArrowRight className="group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>

@@ -11,6 +11,7 @@ export interface DoctorSummary {
   specialtyName: string;
   consultationFee: number;
   biography: string;
+  imageUrl?: string;
   targetDate?: string;
   availableSlots?: string[];
 }
@@ -19,6 +20,7 @@ export interface SpecialtySummary {
   id: number;
   name: string;
   description: string;
+  imageUrl?: string;
 }
 
 export interface AiChatResponse {
@@ -31,10 +33,16 @@ export interface AiChatResponse {
 
 export const aiService = {
   chat: async (message: string, history: ChatMessage[] = []): Promise<AiChatResponse> => {
-    const response = await axiosClient.post<AiChatResponse>('/ai/chat', {
-      message,
-      history,
-    });
+    const response = await axiosClient.post<AiChatResponse>(
+      '/ai/chat',
+      {
+        message,
+        history,
+      },
+      {
+        timeout: 30000,
+      }
+    );
     return response.data;
   },
 

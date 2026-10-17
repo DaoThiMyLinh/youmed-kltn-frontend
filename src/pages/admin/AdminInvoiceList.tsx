@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { Card, Badge, ErrorMessage, EmptyState, Button, Input, PrintReceiptModal } from '../../components';
 import { FiDollarSign, FiSearch, FiCheckCircle, FiChevronLeft, FiChevronRight, FiX, FiPrinter } from 'react-icons/fi';
-import { useTranslation } from 'react-i18next';
 
 interface Invoice {
   id: number;
@@ -23,7 +22,6 @@ interface Invoice {
 }
 
 const AdminInvoiceList = () => {
-  const { t } = useTranslation();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

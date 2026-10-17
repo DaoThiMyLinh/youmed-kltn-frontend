@@ -5,7 +5,6 @@ import {
   FiMessageSquare,
   FiX,
   FiSend,
-  FiUser,
   FiCalendar,
   FiTrash2,
   FiChevronRight,
@@ -15,6 +14,7 @@ import {
   FiClock
 } from 'react-icons/fi';
 import { aiService, type ChatMessage, type DoctorSummary } from '../../services/ai.service';
+import DoctorAvatar from '../common/DoctorAvatar';
 
 interface MessageItem extends ChatMessage {
   id: string;
@@ -319,9 +319,13 @@ export const AiChatWidget: React.FC = () => {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
-                                <FiUser className="w-5 h-5" />
-                              </div>
+                              <DoctorAvatar
+                                imageUrl={doc.imageUrl}
+                                fullName={doc.fullName}
+                                doctorId={doc.id}
+                                size="sm"
+                                className="w-10 h-10 rounded-xl shrink-0"
+                              />
                               <div className="min-w-0">
                                 <h5 className="font-bold text-slate-900 text-xs truncate">
                                   {doc.fullName}

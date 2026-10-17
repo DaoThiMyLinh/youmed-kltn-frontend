@@ -5,6 +5,7 @@ import { getActiveDoctors } from '../../services/appointment.service';
 import type { Doctor } from '../../types/appointment';
 import { Loading } from '../../components/feedback/Loading';
 import { motion } from 'framer-motion';
+import DoctorAvatar from '../../components/common/DoctorAvatar';
 
 const DoctorDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -148,9 +149,13 @@ const DoctorDetail = () => {
 
               <div className="relative z-10 flex-shrink-0">
                 <div className="absolute -inset-2 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full blur opacity-30"></div>
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-slate-50 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
-                  <FiUser className="w-16 h-16 text-slate-300" />
-                </div>
+                <DoctorAvatar
+                  imageUrl={doctor.imageUrl}
+                  email={doctor.email}
+                  fullName={doctor.fullName}
+                  doctorId={doctor.id}
+                  size="xl"
+                />
                 <div className="absolute bottom-1 right-1 bg-emerald-500 border-4 border-white text-white p-2 rounded-full shadow-md">
                   <FiShield className="w-5 h-5" />
                 </div>
