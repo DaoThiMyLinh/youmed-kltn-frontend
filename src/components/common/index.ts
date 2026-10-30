@@ -5,3 +5,4 @@ export * from './Badge';
 export * from './PrintPrescriptionModal';
 export * from './PrintReceiptModal';
 export * from './PrintReferralModal';
+export * from './Logo';
