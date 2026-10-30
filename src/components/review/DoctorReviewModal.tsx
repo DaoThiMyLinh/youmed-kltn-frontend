@@ -46,25 +46,30 @@ export const DoctorReviewModal: React.FC<DoctorReviewModalProps> = ({
         setExistingReview(initialReview);
         setRating(initialReview.rating);
         setComment(initialReview.comment || '');
-      } else if (appointment.hasReviewed) {
-        // Fetch existing review
+      } else {
+        // Luôn kiểm tra xem lịch khám này đã có đánh giá chưa để hiển thị đúng chế độ xem
         setFetchingExisting(true);
         reviewService.getReviewByAppointmentId(appointment.id)
           .then((res) => {
-            setExistingReview(res);
-            setRating(res.rating);
-            setComment(res.comment || '');
+            if (res && res.id) {
+              setExistingReview(res);
+              setRating(res.rating);
+              setComment(res.comment || '');
+            } else {
+              setExistingReview(null);
+              setRating(5);
+              setComment('');
+            }
           })
-          .catch((err) => {
-            console.error('Failed to load existing review:', err);
+          .catch(() => {
+            // Chưa có đánh giá (404) -> Cho phép đánh giá mới
+            setExistingReview(null);
+            setRating(5);
+            setComment('');
           })
           .finally(() => {
             setFetchingExisting(false);
           });
-      } else {
-        setExistingReview(null);
-        setRating(5);
-        setComment('');
       }
     }
   }, [isOpen, appointment, initialReview]);
@@ -105,8 +110,23 @@ export const DoctorReviewModal: React.FC<DoctorReviewModalProps> = ({
       }, 1500);
     } catch (err: any) {
       console.error('Failed to submit review:', err);
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.';
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      const msg = err.response?.data?.message || err.response?.data?.error || '';
+      
+      // Nếu lịch khám đã được đánh giá trước đó, tự động chuyển sang chế độ xem đánh giá đã có
+      if (typeof msg === 'string' && (msg.includes('đã được đánh giá') || msg.includes('Duplicate'))) {
+        try {
+          const existing = await reviewService.getReviewByAppointmentId(appointment.id);
+          if (existing && existing.id) {
+            setExistingReview(existing);
+            setRating(existing.rating);
+            setComment(existing.comment || '');
+            setError(null);
+            return;
+          }
+        } catch (_) {}
+      }
+
+      setError(typeof msg === 'string' && msg ? msg : 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }

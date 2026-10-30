@@ -4,7 +4,7 @@ import type { SpecialtyRequest } from '../../services/specialty.service';
 import type { Specialty } from '../../types/specialty';
 import { userService } from '../../services/user.service';
 import type { User } from '../../types/user';
-import { Card, Badge, ErrorMessage, EmptyState, Button, Input } from '../../components';
+import { Card, Badge, ErrorMessage, EmptyState, Button, Input, Toast, ConfirmModal } from '../../components';
 import { FiGrid, FiPlus, FiEdit2, FiLock, FiUnlock, FiTrash2, FiX } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +13,22 @@ const AdminSpecialtyList = () => {
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; title: string; message?: string } | null>(null);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    confirmText?: string;
+    variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
+    action: () => Promise<void>;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: async () => {},
+  });
+  const [actionLoading, setActionLoading] = useState(false);
   
   // Pagination & Filter
   const [page, setPage] = useState(0);
@@ -136,33 +152,74 @@ const AdminSpecialtyList = () => {
     }
   };
 
-  const handleToggleStatus = async (specialty: Specialty) => {
-    const actionName = specialty.active ? 'khóa' : 'mở khóa';
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionName} chuyên khoa ${specialty.name}?`)) return;
-    
-    try {
-      const data: SpecialtyRequest = {
-        name: specialty.name,
-        description: specialty.description,
-        managerId: specialty.managerId,
-        active: !specialty.active
-      };
-      await specialtyService.updateSpecialty(specialty.id, data);
-      fetchSpecialties();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra.');
-    }
+  const handleToggleStatus = (specialty: Specialty) => {
+    const isLocking = specialty.active;
+    const actionName = isLocking ? 'tạm khóa' : 'mở khóa kích hoạt';
+    setConfirmConfig({
+      isOpen: true,
+      title: isLocking ? 'Xác nhận khóa chuyên khoa' : 'Kích hoạt chuyên khoa',
+      message: `Bạn có chắc chắn muốn ${actionName} chuyên khoa ${specialty.name}?`,
+      confirmText: isLocking ? 'Khóa chuyên khoa' : 'Kích hoạt',
+      variant: isLocking ? 'warning' : 'success',
+      action: async () => {
+        try {
+          setActionLoading(true);
+          const data: SpecialtyRequest = {
+            name: specialty.name,
+            description: specialty.description,
+            managerId: specialty.managerId,
+            active: !specialty.active
+          };
+          await specialtyService.updateSpecialty(specialty.id, data);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setToast({
+            type: 'success',
+            title: 'Thành công',
+            message: `Đã ${actionName} chuyên khoa ${specialty.name}.`,
+          });
+          fetchSpecialties();
+        } catch (err: any) {
+          setToast({
+            type: 'error',
+            title: 'Thao tác thất bại',
+            message: err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật chuyên khoa.',
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  const handleDelete = async (specialty: Specialty) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa chuyên khoa ${specialty.name}? Thao tác này không thể hoàn tác.`)) return;
-    
-    try {
-      await specialtyService.deleteSpecialty(specialty.id);
-      fetchSpecialties();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể xóa chuyên khoa này. Có thể đang có bác sĩ thuộc chuyên khoa.');
-    }
+  const handleDelete = (specialty: Specialty) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Xác nhận xóa chuyên khoa',
+      message: `Bạn có chắc chắn muốn xóa chuyên khoa ${specialty.name}? Thao tác này không thể hoàn tác.`,
+      confirmText: 'Xác nhận xóa',
+      variant: 'danger',
+      action: async () => {
+        try {
+          setActionLoading(true);
+          await specialtyService.deleteSpecialty(specialty.id);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setToast({
+            type: 'success',
+            title: 'Đã xóa chuyên khoa',
+            message: `Đã xóa chuyên khoa ${specialty.name} thành công.`,
+          });
+          fetchSpecialties();
+        } catch (err: any) {
+          setToast({
+            type: 'error',
+            title: 'Không thể xóa',
+            message: err.response?.data?.message || 'Không thể xóa chuyên khoa này. Có thể đang có bác sĩ thuộc chuyên khoa.',
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -401,6 +458,30 @@ const AdminSpecialtyList = () => {
           </div>
         </div>
       )}
+
+      {/* Floating Modern Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
+
+      {/* Unified Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmConfig.action}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        variant={confirmConfig.variant}
+        isLoading={actionLoading}
+      />
     </div>
   );
 };

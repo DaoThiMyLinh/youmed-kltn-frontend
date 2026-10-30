@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { menuConfig } from '../../config/menu';
 import { FiX } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
+import { Logo } from '../common/Logo';
 
 interface SidebarProps {
   role: string | null;
@@ -50,9 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-emerald-50/50 bg-white/40">
-          <div className="font-bold text-2xl text-gradient tracking-tight drop-shadow-sm">
-            YouMed
-          </div>
+          <Logo size="md" />
           <button 
             type="button"
             onClick={onClose}

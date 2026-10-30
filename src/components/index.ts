@@ -4,4 +4,5 @@ export * from './feedback';
 export * from './layout';
 export { default as MedicalCalendar } from './calendar/MedicalCalendar';
 export { default as CalendarEventModal } from './calendar/CalendarEventModal';
+export { AiChatWidget } from './ai/AiChatWidget';
 export * from './review/DoctorReviewModal';

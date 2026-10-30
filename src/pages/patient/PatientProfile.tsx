@@ -7,6 +7,7 @@ import { selectUserRole } from '../../store/features/auth/authSlice';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { formatGender } from '../../utils/formatters';
 
 const PatientProfile = () => {
   const dispatch = useDispatch<any>();
@@ -124,8 +125,8 @@ const PatientProfile = () => {
               </div>
               <div>
                 <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider block mb-1">{t('profile.gender')}</span>
-                <span className="text-slate-900 font-bold text-lg capitalize">
-                  {profile.gender ? t(`profile.${profile.gender.toLowerCase()}`) : <span className="text-slate-400 italic font-normal">{t('profile.notProvided')}</span>}
+                <span className="text-slate-900 font-bold text-lg">
+                  {formatGender(profile.gender, t)}
                 </span>
               </div>
             </div>

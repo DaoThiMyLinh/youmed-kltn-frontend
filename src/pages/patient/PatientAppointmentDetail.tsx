@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { FiArrowLeft, FiCalendar, FiUser, FiFileText, FiClipboard, FiClock, FiActivity, FiCheckCircle, FiStar } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiUser, FiFileText, FiClipboard, FiClock, FiActivity, FiCheckCircle, FiStar, FiPrinter, FiShare2 } from 'react-icons/fi';
+import { PrintPrescriptionModal, PrintReferralModal } from '../../components';
 import { selectPatientAppointments, fetchAppointmentsThunk } from '../../store/features/patient/patientSlice';
 import { consultationService } from '../../services/consultation.service';
 import { DoctorReviewModal } from '../../components';
@@ -21,6 +22,8 @@ const PatientAppointmentDetail = () => {
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [loadingRecord, setLoadingRecord] = useState(true);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [printReferralModalOpen, setPrintReferralModalOpen] = useState(false);
 
   const stateAppointment = location.state?.appointment;
   const appointment = stateAppointment || appointments.find(a => a.id === Number(id));
@@ -95,7 +98,23 @@ const PatientAppointmentDetail = () => {
         <button className="flex items-center gap-2 text-slate-600 hover:text-emerald-600 font-semibold transition-colors" onClick={() => navigate(-1)}>
           <FiArrowLeft /> Quay lại
         </button>
-        <h1 className="text-lg font-bold text-slate-900 hidden sm:block">Chi tiết lịch hẹn</h1>
+        <div className="flex items-center gap-3">
+          {medicalRecord && (
+            <button
+              onClick={() => setPrintModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs shadow-xs transition-all cursor-pointer"
+            >
+              <FiPrinter className="w-3.5 h-3.5" /> In đơn thuốc & Phiếu khám
+            </button>
+          )}
+          {medicalRecord && (medicalRecord.referralServices || medicalRecord.referralTarget) && (
+            <button
+              onClick={() => setPrintReferralModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-bold text-xs shadow-xs transition-all cursor-pointer"
+            >
+              <FiShare2 className="w-3.5 h-3.5" /> In Giấy giới thiệu
+            </button>
+          )}
         <div className="flex items-center gap-3">
           {appointment.status === 'COMPLETED' && (
             appointment.hasReviewed ? (
@@ -116,8 +135,9 @@ const PatientAppointmentDetail = () => {
               </button>
             )
           )}
-          <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${getStatusColor(appointment.status)}`}>
-            {t(`status.${appointment.status}`)}
+            <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${getStatusColor(appointment.status)}`}>
+              {t(`status.${appointment.status}`)}
+          </div>
           </div>
         </div>
       </motion.div>
@@ -215,6 +235,31 @@ const PatientAppointmentDetail = () => {
                   {medicalRecord.notes || 'Không có ghi chú thêm.'}
                 </p>
               </div>
+              {medicalRecord.followUpDate && (
+                <div className="md:col-span-2 space-y-3">
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <FiCalendar className="text-emerald-600" /> Lịch hẹn tái khám
+                  </span>
+                  <div className="bg-emerald-50/90 p-5 rounded-2xl border border-emerald-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                        <FiCalendar className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-emerald-950 text-lg">
+                          {new Date(medicalRecord.followUpDate).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </div>
+                        <p className="text-emerald-700 text-sm mt-0.5 font-medium">
+                          Bác sĩ hẹn tái khám định kỳ. Quý bệnh nhân vui lòng đến đúng lịch hẹn.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="self-start sm:self-center px-4 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-xs whitespace-nowrap">
+                      Hẹn tái khám
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -296,6 +341,78 @@ const PatientAppointmentDetail = () => {
         onSuccess={() => {
           dispatch(fetchAppointmentsThunk());
         }}
+      />
+      {/* Referral Information Card (if present) */}
+      {medicalRecord && (medicalRecord.referralServices || medicalRecord.referralTarget) && (
+        <motion.div variants={itemVariants} className="bg-white rounded-3xl shadow-sm border border-teal-200/90 overflow-hidden">
+          <div className="p-6 bg-gradient-to-r from-teal-50/80 via-emerald-50/50 to-teal-50/80 border-b border-teal-100 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-bold shadow-sm">
+                <FiShare2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Giấy Giới Thiệu Chuyển Tuyến Cận Lâm Sàng</h3>
+                <p className="text-xs text-slate-500 font-medium">Chỉ định chụp X-quang, MRI, CT hoặc Xét nghiệm chuyên sâu ngoài</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setPrintReferralModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+            >
+              <FiPrinter className="w-3.5 h-3.5" /> In Giấy giới thiệu
+            </button>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Cơ sở / Đơn vị tiếp nhận</span>
+                <p className="text-base font-bold text-teal-950">{medicalRecord.referralTarget || 'Các bệnh viện, trung tâm chẩn đoán hình ảnh chuyên sâu'}</p>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Lý do chỉ định chuyên sâu</span>
+                <p className="text-sm font-semibold text-slate-800">{medicalRecord.referralReason || 'Theo dõi và chẩn đoán phân biệt chuyên khoa'}</p>
+              </div>
+            </div>
+
+            <div className="bg-teal-50/40 p-4 rounded-2xl border border-teal-100/80">
+              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block mb-2">Kỹ thuật & Dịch vụ chỉ định thực hiện</span>
+              <div className="flex flex-wrap gap-2">
+                {medicalRecord.referralServices?.split(',').map((s, idx) => (
+                  <span key={idx} className="px-3 py-1.5 bg-white text-teal-900 font-bold text-xs rounded-xl border border-teal-200 shadow-2xs">
+                    ✓ {s.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {medicalRecord.referralNotes && (
+              <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 text-xs text-slate-700 space-y-1">
+                <span className="font-bold text-emerald-900 uppercase tracking-wide block">Lời dặn dò của Bác sĩ:</span>
+                <p className="text-slate-800 font-medium">{medicalRecord.referralNotes}</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Print Prescriptions Modal */}
+      <PrintPrescriptionModal
+        isOpen={printModalOpen}
+        onClose={() => setPrintModalOpen(false)}
+        appointment={appointment}
+        medicalRecord={medicalRecord}
+        prescription={prescription}
+      />
+
+      {/* Print Referral Modal */}
+      <PrintReferralModal
+        isOpen={printReferralModalOpen}
+        onClose={() => setPrintReferralModalOpen(false)}
+        appointment={appointment}
+        medicalRecord={medicalRecord}
       />
     </div>
   );

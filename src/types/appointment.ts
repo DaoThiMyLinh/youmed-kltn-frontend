@@ -9,6 +9,7 @@ export interface Doctor {
   phone: string;
   email: string;
   biography: string;
+  imageUrl?: string;
   active: boolean;
   role?: Role;
   createdAt: string;
@@ -23,6 +24,8 @@ export interface TimeSlot {
   endDateTime: string;
   booked: boolean;
   appointmentId: number | null;
+  isPast?: boolean;
+  isBookable?: boolean;
 }
 
 export interface CreateAppointmentRequest {

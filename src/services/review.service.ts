@@ -9,12 +9,12 @@ export const reviewService = {
   },
 
   getReviewsByDoctorId: async (doctorId: number, page: number = 0, size: number = 10): Promise<PageResponse<DoctorReview>> => {
-    const response = await axiosClient.get<PageResponse<DoctorReview>>(`/doctors/${doctorId}/reviews?page=${page}&size=${size}`);
+    const response = await axiosClient.get<PageResponse<DoctorReview>>(`/reviews/doctor/${doctorId}?page=${page}&size=${size}`);
     return response.data;
   },
 
   getDoctorRatingSummary: async (doctorId: number): Promise<DoctorRatingSummary> => {
-    const response = await axiosClient.get<DoctorRatingSummary>(`/doctors/${doctorId}/rating-summary`);
+    const response = await axiosClient.get<DoctorRatingSummary>(`/reviews/doctor/${doctorId}/summary`);
     return response.data;
   },
 

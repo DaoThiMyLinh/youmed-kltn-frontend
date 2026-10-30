@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, FormField, Input, PasswordInput, ErrorMessage } from '../../components';
+import { Button, Card, CardHeader, CardDescription, CardContent, CardFooter, FormField, Input, PasswordInput, ErrorMessage, Logo } from '../../components';
 import { forgotPassword, resetPassword } from '../../services/auth.service';
 
 const ForgotPassword = () => {
@@ -83,8 +83,10 @@ const ForgotPassword = () => {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-extrabold text-gradient drop-shadow-sm tracking-tight">YOUMED</CardTitle>
+        <CardHeader className="text-center flex flex-col items-center">
+          <div className="mb-2">
+            <Logo size="lg" to="/patient" showTagline />
+          </div>
           <CardDescription>
             {!showOtpStep 
               ? "Nhập email của bạn để lấy lại mật khẩu" 

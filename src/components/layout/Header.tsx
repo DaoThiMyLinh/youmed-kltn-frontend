@@ -4,6 +4,7 @@ import { FiMenu, FiLogOut, FiUser } from 'react-icons/fi';
 import { logout, selectUserRole, selectUserName } from '../../store/features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Logo } from '../common/Logo';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -37,8 +38,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         >
           <FiMenu className="w-5 h-5" />
         </button>
-        <div className="font-bold text-xl text-gradient tracking-tight hidden lg:block drop-shadow-sm">
-          YouMed
+        <div className="hidden lg:block">
+          <Logo size="sm" />
         </div>
       </div>
 

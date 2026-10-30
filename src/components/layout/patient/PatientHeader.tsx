@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
 import { selectIsAuthenticated, selectUserName, logout } from '../../../store/features/auth/authSlice';
 import { useTranslation } from 'react-i18next';
+import { Logo } from '../../common/Logo';
 
 export const PatientHeader = () => {
   const { i18n } = useTranslation();
@@ -38,9 +39,7 @@ export const PatientHeader = () => {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/patient" className="font-bold text-2xl text-gradient tracking-tight drop-shadow-sm text-emerald-600">
-              YouMed
-            </Link>
+            <Logo to="/patient" size="md" />
           </div>
 
           {/* Desktop Navigation */}

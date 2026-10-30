@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
-import { Card, Badge, ErrorMessage, EmptyState, Button, Input } from '../../components';
-import { FiDollarSign, FiSearch, FiCheckCircle, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import { Card, Badge, ErrorMessage, EmptyState, Button, Input, PrintReceiptModal, Toast } from '../../components';
+import { FiDollarSign, FiSearch, FiCheckCircle, FiChevronLeft, FiChevronRight, FiX, FiPrinter } from 'react-icons/fi';
 
 interface Invoice {
   id: number;
@@ -25,6 +25,7 @@ const AdminInvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; title: string; message?: string } | null>(null);
   
   // Search & Pagination state
   const [keyword, setKeyword] = useState('');
@@ -36,6 +37,10 @@ const AdminInvoiceList = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
+
+  // Receipt Print Modal State
+  const [printReceiptModalOpen, setPrintReceiptModalOpen] = useState(false);
+  const [receiptInvoice, setReceiptInvoice] = useState<Invoice | null>(null);
 
   const fetchInvoices = async () => {
     try {
@@ -76,20 +81,47 @@ const AdminInvoiceList = () => {
     if (!selectedInvoice) return;
     try {
       await axiosClient.put(`/invoices/${selectedInvoice.id}/pay?paymentMethod=${paymentMethod}`);
-      alert('Thanh toán thành công!');
+      setToast({
+        type: 'success',
+        title: 'Thanh toán thành công',
+        message: `Hóa đơn #${selectedInvoice.id} đã được quyết toán thành công.`,
+      });
       setPaymentModalOpen(false);
       fetchInvoices();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra khi thanh toán.');
+      setToast({
+        type: 'error',
+        title: 'Thanh toán thất bại',
+        message: err.response?.data?.message || 'Có lỗi xảy ra khi thực hiện thanh toán.',
+      });
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'PENDING': return <Badge variant="warning">Chưa thanh toán</Badge>;
-      case 'PAID': return <Badge variant="success">Đã thanh toán</Badge>;
-      case 'CANCELLED': return <Badge variant="danger">Đã hủy</Badge>;
-      default: return <Badge variant="secondary">{status}</Badge>;
+      case 'PENDING':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+            Chưa thanh toán
+          </span>
+        );
+      case 'PAID':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            Đã thanh toán
+          </span>
+        );
+      case 'CANCELLED':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+            Đã hủy
+          </span>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
@@ -130,14 +162,16 @@ const AdminInvoiceList = () => {
                 setStatusFilter(e.target.value);
                 setPage(0);
               }}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-sm"
             >
-              <option value="">Tất cả</option>
+              <option value="">Tất cả trạng thái</option>
               <option value="PENDING">Chưa thanh toán</option>
               <option value="PAID">Đã thanh toán</option>
             </select>
           </div>
-          <Button type="submit" leftIcon={<FiSearch />} className="w-full md:w-auto h-[46px]">Tìm kiếm</Button>
+          <Button type="submit" leftIcon={<FiSearch />} className="w-full md:w-auto h-[46px] whitespace-nowrap">
+            Tìm kiếm
+          </Button>
         </form>
       </Card>
 
@@ -150,66 +184,103 @@ const AdminInvoiceList = () => {
           description="Chưa có dữ liệu hóa đơn nào phù hợp với tìm kiếm."
         />
       ) : invoices.length > 0 ? (
-        <Card className="overflow-hidden border-0 shadow-sm ring-1 ring-slate-200">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+        <Card className="border-0 shadow-sm ring-1 ring-slate-200">
+          <div className="overflow-hidden">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4">Mã HĐ</th>
-                  <th className="px-6 py-4">Thời gian</th>
-                  <th className="px-6 py-4">Loại phí</th>
-                  <th className="px-6 py-4">Mô tả</th>
-                  <th className="px-6 py-4">Bệnh nhân</th>
-                  <th className="px-6 py-4">Số tiền</th>
-                  <th className="px-6 py-4">Trạng thái</th>
-                  <th className="px-6 py-4 text-right">Thao tác</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider w-16">Mã HĐ</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider w-28">Thời gian</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider w-28">Loại phí</th>
+                  <th className="px-3 py-3 text-slate-600 uppercase tracking-wider">Nội dung</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider w-36">Bệnh nhân</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider w-28">Số tiền</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider text-center w-32">Trạng thái</th>
+                  <th className="px-3 py-3 whitespace-nowrap text-slate-600 uppercase tracking-wider text-right w-28">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-mono font-medium text-slate-900">
-                      #{inv.id}
+                  <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-3 py-3 whitespace-nowrap font-mono font-semibold text-slate-900">
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-bold">#{inv.id}</span>
                     </td>
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <div className="font-semibold text-slate-900">
                         {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('vi-VN') : '—'}
                       </div>
                       {inv.paymentDate ? (
-                        <div className="text-emerald-600 font-medium text-[11px] mt-0.5">
-                          Đã thu: {new Date(inv.paymentDate).toLocaleDateString('vi-VN')} {new Date(inv.paymentDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                        <div className="text-emerald-700 font-medium text-[11px] mt-0.5 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                          Đã thu {new Date(inv.paymentDate).toLocaleDateString('vi-VN')}
                         </div>
                       ) : (
-                        <div className="text-amber-500 text-[11px] mt-0.5">Chờ thu tiền</div>
+                        <div className="text-amber-600 font-medium text-[11px] mt-0.5 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                          Chờ thu
+                        </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 font-medium text-slate-700">
-                      {getTypeLabel(inv.type)}
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
+                        {getTypeLabel(inv.type)}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500">
-                      {inv.description}
+                    <td className="px-3 py-3 text-slate-600">
+                      <div className="truncate max-w-[150px] lg:max-w-[220px]" title={inv.description}>
+                        {inv.description || '—'}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">
-                      {inv.patient.fullName}
-                      {inv.appointment && <div className="text-xs font-normal text-slate-500">Ca khám: #{inv.appointment.id}</div>}
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="font-semibold text-slate-900 truncate max-w-[140px]">{inv.patient?.fullName || '—'}</div>
+                      {inv.appointment && (
+                        <div className="text-[11px] text-slate-500 mt-0.5 font-mono">
+                          Ca #{inv.appointment.id}
+                        </div>
+                      )}
                     </td>
-                    <td className="px-6 py-4 font-bold text-emerald-600">
-                      {inv.amount.toLocaleString('vi-VN')} ₫
-                      {inv.paymentMethod && <div className="text-xs font-normal text-slate-500 mt-1">Qua {inv.paymentMethod}</div>}
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="font-bold text-emerald-600 text-sm">
+                        {inv.amount.toLocaleString('vi-VN')} ₫
+                      </div>
+                      {inv.paymentMethod && (
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          <span className="px-1 py-0.2 bg-slate-100 rounded text-slate-600 font-medium">
+                            {inv.paymentMethod}
+                          </span>
+                        </div>
+                      )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 whitespace-nowrap text-center">
                       {getStatusBadge(inv.status)}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      {inv.status === 'PENDING' && (
-                        <Button 
-                          size="sm"
-                          onClick={() => handleOpenPayment(inv)}
-                          leftIcon={<FiCheckCircle />}
-                        >
-                          Thanh toán
-                        </Button>
-                      )}
+                    <td className="px-3 py-3 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {inv.status === 'PAID' && (
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setReceiptInvoice(inv);
+                              setPrintReceiptModalOpen(true);
+                            }}
+                            leftIcon={<FiPrinter className="text-emerald-600 shrink-0 w-3.5 h-3.5" />}
+                            className="whitespace-nowrap border-slate-200 text-slate-700 hover:text-emerald-700 hover:border-emerald-300 font-medium shrink-0 h-8 px-2.5 text-xs shadow-none hover:shadow-sm"
+                          >
+                            In biên lai
+                          </Button>
+                        )}
+                        {inv.status === 'PENDING' && (
+                          <Button 
+                            size="sm"
+                            onClick={() => handleOpenPayment(inv)}
+                            leftIcon={<FiCheckCircle className="shrink-0 w-3.5 h-3.5" />}
+                            className="whitespace-nowrap shrink-0 h-8 px-2.5 text-xs"
+                          >
+                            Thanh toán
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -245,65 +316,149 @@ const AdminInvoiceList = () => {
       ) : null}
 
       {/* Payment Modal */}
-      {paymentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-bold text-lg text-slate-900">Xác nhận thanh toán</h3>
-              <button onClick={() => setPaymentModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+      {paymentModalOpen && selectedInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                  <FiDollarSign className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900 leading-tight">Xác nhận thanh toán</h3>
+                  <p className="text-xs text-slate-500">Hóa đơn #{selectedInvoice.id}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setPaymentModalOpen(false)} 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
                 <FiX className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Modal Body */}
             <div className="p-6">
-              <label className="block text-sm font-medium text-slate-700 mb-3">Chọn phương thức thanh toán</label>
-              <div className="grid grid-cols-1 gap-3">
-                {['CASH', 'TRANSFER'].map((method) => (
+              {/* Summary Card */}
+              <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 mb-5 space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">Bệnh nhân:</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedInvoice.patient.fullName}</span>
+                </div>
+                {selectedInvoice.appointment && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Mã ca khám:</span>
+                    <span className="font-mono text-slate-700 font-medium">#{selectedInvoice.appointment.id}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">Nội dung phí:</span>
+                  <span className="text-slate-700 font-medium">{getTypeLabel(selectedInvoice.type)}</span>
+                </div>
+                <div className="pt-2 border-t border-slate-200/60 flex justify-between items-center">
+                  <span className="font-semibold text-slate-700">Tổng tiền cần thu:</span>
+                  <span className="text-lg font-bold text-emerald-600">
+                    {selectedInvoice.amount.toLocaleString('vi-VN')} ₫
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Method Selector */}
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
+                Phương thức thanh toán
+              </label>
+              <div className="grid grid-cols-1 gap-2.5">
+                {[
+                  { id: 'CASH', title: 'Tiền mặt tại quầy', desc: 'Thu tiền trực tiếp từ bệnh nhân' },
+                  { id: 'TRANSFER', title: 'Chuyển khoản / Quét VietQR', desc: 'Quét mã ngân hàng tự động' }
+                ].map((item) => (
                   <label 
-                    key={method}
-                    className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === method ? 'border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-500' : 'border-slate-200 hover:border-slate-300'}`}
+                    key={item.id}
+                    className={`flex items-start p-3.5 border rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === item.id 
+                        ? 'border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500 shadow-sm' 
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
                   >
                     <input 
                       type="radio" 
                       name="paymentMethod" 
-                      value={method}
-                      checked={paymentMethod === method}
+                      value={item.id}
+                      checked={paymentMethod === item.id}
                       onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
+                      className="w-4 h-4 mt-0.5 text-emerald-600 border-slate-300 focus:ring-emerald-500"
                     />
-                    <div className="ml-3 flex-1 flex items-center justify-between">
-                      <span className="font-medium text-slate-900">
-                        {method === 'CASH' ? 'Tiền mặt' : 'Chuyển khoản / Quét mã QR'}
-                      </span>
-                      {method !== 'CASH' && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium tracking-wide">Quét mã QR</span>
-                      )}
+                    <div className="ml-3 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-900 text-sm">{item.title}</span>
+                        {item.id === 'TRANSFER' && (
+                          <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                            VietQR
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
                     </div>
                   </label>
                 ))}
               </div>
               
-              {/* Show QR Code for VNPAY or MOMO */}
+              {/* Show QR Code for VNPAY or VietQR */}
               {paymentMethod !== 'CASH' && (
-                <div className="mt-4 p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
-                  <p className="text-sm font-medium text-slate-700 mb-3">Quét mã QR để thanh toán</p>
-                  <div className="p-2 bg-white rounded-lg shadow-sm border border-slate-100 mb-3">
+                <div className="mt-4 p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-200">
+                  <p className="text-xs font-semibold text-slate-700 mb-2.5">Mã thanh toán VietQR chuyển khoản nhanh</p>
+                  <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-200 mb-2">
                     <img 
-                      src={`https://img.vietqr.io/image/${import.meta.env.VITE_BANK_ID || 'vietinbank'}-${import.meta.env.VITE_BANK_ACCOUNT_NO || '100884561855'}-compact2.png?amount=${selectedInvoice?.amount}&addInfo=${encodeURIComponent('Thanh toan HD ' + selectedInvoice?.id)}&accountName=${encodeURIComponent(import.meta.env.VITE_BANK_ACCOUNT_NAME || 'PHONG KHAM YOUMED')}`} 
+                      src={`https://img.vietqr.io/image/${import.meta.env.VITE_BANK_ID || 'vietinbank'}-${import.meta.env.VITE_BANK_ACCOUNT_NO || '100884561855'}-compact2.png?amount=${selectedInvoice.amount}&addInfo=${encodeURIComponent('Thanh toan HD ' + selectedInvoice.id)}&accountName=${encodeURIComponent(import.meta.env.VITE_BANK_ACCOUNT_NAME || 'PHONG KHAM YOUMED')}`} 
                       alt="Payment QR Code" 
-                      className="w-56 h-56 object-contain"
+                      className="w-48 h-48 object-contain"
                     />
                   </div>
-                  <p className="text-xs text-slate-500 text-center">
-                    Giao dịch sẽ được ghi nhận là thanh toán bằng hình thức Chuyển khoản.<br/>
+                  <p className="text-[11px] text-slate-500 text-center">
+                    Bệnh nhân mở App ngân hàng quét mã để thanh toán đúng số tiền.
                   </p>
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
-              <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>Hủy</Button>
-              <Button onClick={handlePayInvoice} leftIcon={<FiCheckCircle />}>Xác nhận đã thu tiền</Button>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/70">
+              <Button 
+                variant="outline" 
+                onClick={() => setPaymentModalOpen(false)}
+                className="border-slate-200 text-slate-700 hover:bg-slate-100"
+              >
+                Hủy bỏ
+              </Button>
+              <Button 
+                onClick={handlePayInvoice} 
+                leftIcon={<FiCheckCircle className="shrink-0" />}
+                className="shadow-sm"
+              >
+                Xác nhận đã thu tiền
+              </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Print Receipt Modal */}
+      <PrintReceiptModal
+        isOpen={printReceiptModalOpen}
+        onClose={() => setPrintReceiptModalOpen(false)}
+        invoice={receiptInvoice}
+      />
+
+      {/* Floating Modern Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
         </div>
       )}
     </div>

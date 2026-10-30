@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiPhone, FiMail, FiMapPin, FiFacebook, FiTwitter, FiInstagram } from 'react-icons/fi';
+import { Logo } from '../../common/Logo';
 
 export const PatientFooter = () => {
   return (
@@ -8,7 +9,9 @@ export const PatientFooter = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Company Info */}
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight mb-4">YouMed</h2>
+            <div className="mb-4">
+              <Logo theme="dark" size="lg" to="/patient" />
+            </div>
             <p className="text-sm text-slate-400 mb-6 leading-relaxed">
               Nền tảng đặt lịch khám bệnh trực tuyến hàng đầu, kết nối bệnh nhân với các bác sĩ và chuyên gia y tế giỏi nhất.
             </p>

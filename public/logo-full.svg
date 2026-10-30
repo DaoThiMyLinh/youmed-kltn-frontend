@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 90" width="360" height="90" fill="none">
+  <defs>
+    <linearGradient id="ymFullCrossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="ymFullLeafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="ymFullPulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="ymTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+  </defs>
+
+  <!-- Group Logo Icon (left side: x: 0 - 80) -->
+  <g transform="translate(6, 6) scale(0.85)">
+    <!-- Cross Outline -->
+    <path
+      d="M 36 10 C 36 6.686 38.686 4 42 4 L 54 4 C 57.314 4 60 6.686 60 10 L 60 34 L 84 34 C 87.314 34 90 36.686 90 40 L 90 52 C 90 55.314 87.314 58 84 58 L 60 58 L 60 82 C 60 85.314 57.314 88 54 88 L 42 88 C 38.686 88 36 85.314 36 82 L 36 58 L 12 58 C 8.686 58 6 55.314 6 52 L 6 40 C 6 36.686 8.686 34 12 34 L 36 34 Z"
+      fill="none"
+      stroke="url(#ymFullCrossGrad)"
+      stroke-width="6.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+
+    <!-- Pulse Wave -->
+    <path
+      d="M 4 46 L 30 46 L 38 28 L 48 64 L 58 36 L 65 48 L 72 46"
+      fill="none"
+      stroke="url(#ymFullPulseGrad)"
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Leaf -->
+    <path
+      d="M 56 44 C 56 26, 70 16, 84 16 C 84 30, 72 46, 56 44 Z"
+      fill="url(#ymFullLeafGrad)"
+    />
+    <path
+      d="M 58 42 Q 68 30 81 20"
+      fill="none"
+      stroke="#065f46"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      opacity="0.6"
+    />
+  </g>
+
+  <!-- Typography: YouMed -->
+  <g transform="translate(98, 0)">
+    <!-- "You" in dark modern slate -->
+    <text x="0" y="52" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="#0f172a" letter-spacing="-1">You</text>
+    
+    <!-- "Med" in vibrant emerald gradient -->
+    <text x="86" y="52" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="url(#ymTextGrad)" letter-spacing="-1">Med</text>
+    
+    <!-- Pulse dot accent above 'i'/corner -->
+    <circle cx="184" cy="24" r="3.5" fill="#10b981" />
+
+    <!-- Tagline -->
+    <text x="2" y="72" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" fill="#64748b" letter-spacing="2.8">HỆ THỐNG Y TẾ THÔNG MINH</text>
+  </g>
+</svg>

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { PatientHeader } from '../../components/layout/patient/PatientHeader';
 import { PatientFooter } from '../../components/layout/patient/PatientFooter';
+import { AiChatWidget } from '../../components';
 
 const PatientLayout = () => {
   return (
@@ -10,6 +11,7 @@ const PatientLayout = () => {
         <Outlet />
       </main>
       <PatientFooter />
+      <AiChatWidget />
     </div>
   );
 };

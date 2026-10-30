@@ -8,6 +8,11 @@ export interface MedicalRecord {
   diagnosis: string;
   symptoms: string;
   notes: string;
+  followUpDate?: string;
+  referralTarget?: string;
+  referralServices?: string;
+  referralReason?: string;
+  referralNotes?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -35,12 +40,22 @@ export interface CreateMedicalRecordRequest {
   diagnosis: string;
   symptoms: string;
   notes: string;
+  followUpDate?: string;
+  referralTarget?: string;
+  referralServices?: string;
+  referralReason?: string;
+  referralNotes?: string;
 }
 
 export interface UpdateMedicalRecordRequest {
   diagnosis: string;
   symptoms: string;
   notes: string;
+  followUpDate?: string;
+  referralTarget?: string;
+  referralServices?: string;
+  referralReason?: string;
+  referralNotes?: string;
 }
 
 export interface CreatePrescriptionRequest {

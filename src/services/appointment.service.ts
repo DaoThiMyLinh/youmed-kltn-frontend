@@ -31,11 +31,15 @@ export const getAllAppointments = async (
   page = 0,
   size = 10,
   status?: string,
+  keyword?: string,
+  date?: string,
   sortBy = 'id',
   sortDir = 'DESC'
 ): Promise<PageResponse<Appointment>> => {
   let url = `/appointments?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
   if (status && status !== 'ALL') url += `&status=${status}`;
+  if (keyword && keyword.trim()) url += `&keyword=${encodeURIComponent(keyword.trim())}`;
+  if (date && date.trim()) url += `&date=${encodeURIComponent(date.trim())}`;
   const response = await axiosClient.get<PageResponse<Appointment>>(url);
   return response.data;
 };

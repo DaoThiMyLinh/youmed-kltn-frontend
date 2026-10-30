@@ -122,13 +122,40 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       <div className="flex items-center gap-2 text-slate-700">
         <FiInfo className="text-primary" />
         <span className="font-medium">{t('common.status', 'Trạng thái')}:</span>
-        <Badge variant={
-          data.status === 'CONFIRMED' ? 'success' : 
-          data.status === 'PENDING' ? 'warning' : 
-          data.status === 'CANCELLED' ? 'danger' : 'primary'
-        }>
-          {data.status}
-        </Badge>
+        {(() => {
+          let label = data.status;
+          let variant: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' = 'primary';
+          switch (data.status) {
+            case 'PENDING':
+              label = t('status.PENDING', 'Chờ xác nhận');
+              variant = 'warning';
+              break;
+            case 'CONFIRMED':
+              label = t('status.CONFIRMED', 'Đã xác nhận');
+              variant = 'primary';
+              break;
+            case 'CHECKED_IN':
+              label = t('status.CHECKED_IN', 'Đã check-in');
+              variant = 'info';
+              break;
+            case 'IN_PROGRESS':
+              label = t('status.IN_PROGRESS', 'Đang khám');
+              variant = 'primary';
+              break;
+            case 'COMPLETED':
+              label = t('status.COMPLETED', 'Đã hoàn thành');
+              variant = 'success';
+              break;
+            case 'CANCELLED':
+              label = t('status.CANCELLED', 'Đã hủy');
+              variant = 'danger';
+              break;
+            default:
+              label = data.status;
+              variant = 'secondary';
+          }
+          return <Badge variant={variant}>{label}</Badge>;
+        })()}
       </div>
       {data.reason && (
         <div className="text-slate-700">
