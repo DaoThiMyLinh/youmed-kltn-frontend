@@ -22,8 +22,12 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       clearAuth();
-      // Redirect to login only if not already there
-      if (window.location.pathname !== '/login') {
+      // Only redirect if not on a public page
+      const publicPaths = ['/login', '/register', '/forgot-password', '/patient', '/patient/doctors', '/patient/specialties'];
+      const currentPath = window.location.pathname;
+      const isPublicPath = publicPaths.includes(currentPath) || currentPath.startsWith('/patient/doctors/');
+      
+      if (!isPublicPath) {
         window.location.href = '/login';
       }
     }

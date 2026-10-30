@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Header, Sidebar } from '../components/layout';
-import { selectUserRole } from '../store/features/auth/authSlice';
+import { Header, Sidebar } from '../../components/layout';
+import { selectUserRole } from '../../store/features/auth/authSlice';
 
 export const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

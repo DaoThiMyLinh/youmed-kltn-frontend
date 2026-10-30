@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerThunk, verifyOtpThunk, selectAuthLoading, selectAuthError, clearError } from '../../store/features/auth/authSlice';
 import type { RegisterRequest } from '../../types/auth';
-import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, FormField, Input, PasswordInput, ErrorMessage } from '../../components';
+import { Button, Card, CardHeader, CardDescription, CardContent, CardFooter, FormField, Input, PasswordInput, ErrorMessage, Logo } from '../../components';
 
 const Register = () => {
   const [fullName, setFullName] = useState('');
@@ -71,11 +71,11 @@ const Register = () => {
       if (verifyOtpThunk.fulfilled.match(resultAction)) {
         const role = resultAction.payload.role;
         if (role === 'DOCTOR') {
-          navigate('/doctor-dashboard');
+          navigate('/doctor');
         } else if (role === 'ADMIN') {
-          navigate('/admin-dashboard');
+          navigate('/admin');
         } else {
-          navigate('/patient-dashboard');
+          navigate('/patient');
         }
       } else {
         setLocalError(resultAction.payload as string || 'Mã OTP không hợp lệ');
@@ -111,8 +111,10 @@ const Register = () => {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-extrabold text-gradient drop-shadow-sm tracking-tight">YOUMED</CardTitle>
+        <CardHeader className="text-center flex flex-col items-center">
+          <div className="mb-2">
+            <Logo size="lg" to="/patient" showTagline />
+          </div>
           <CardDescription>Điền thông tin của bạn để đăng ký tài khoản</CardDescription>
         </CardHeader>
         <CardContent>

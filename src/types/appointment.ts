@@ -1,4 +1,5 @@
 import type { Specialty } from './specialty';
+import type { Role } from './user';
 
 export interface Doctor {
   id: number;
@@ -8,8 +9,12 @@ export interface Doctor {
   phone: string;
   email: string;
   biography: string;
+  imageUrl?: string;
   active: boolean;
+  role?: Role;
   createdAt: string;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 export interface TimeSlot {

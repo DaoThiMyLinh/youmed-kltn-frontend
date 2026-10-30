@@ -14,11 +14,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseClasses = 'inline-flex items-center justify-center font-medium transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2';
     
     const variants = {
-      primary: 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200 hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 focus:ring-indigo-500 border border-transparent',
+      primary: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-200 hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 focus:ring-emerald-500 border border-transparent',
       secondary: 'bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 focus:ring-slate-500',
       danger: 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md shadow-red-200 hover:shadow-lg hover:shadow-red-300/50 hover:-translate-y-0.5 focus:ring-red-500 border border-transparent',
-      outline: 'border-2 border-indigo-100 bg-transparent text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 focus:ring-indigo-500 transition-all duration-300',
-      ghost: 'bg-transparent text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 focus:ring-indigo-500 transition-all duration-300',
+      outline: 'border-2 border-emerald-100 bg-transparent text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 focus:ring-emerald-500 transition-all duration-300',
+      ghost: 'bg-transparent text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 focus:ring-emerald-500 transition-all duration-300',
     };
 
     const sizes = {

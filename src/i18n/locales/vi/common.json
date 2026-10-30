@@ -34,20 +34,26 @@
     "doctorName": "Tên Bác sĩ",
     "specialty": "Chuyên khoa",
     "consultationFee": "Phí khám bệnh",
-    "standard": "Tiêu chuẩn"
+    "standard": "Tiêu chuẩn",
+    "free": "Miễn phí"
   },
   "menu": {
+    "invoices": "Thanh toán",
     "dashboard": "Trang chủ",
     "appointments": "Lịch hẹn",
     "bookAppointment": "Đặt lịch",
     "medicalHistory": "Lịch sử khám",
+    "medicalRecords": "Lịch sử",
     "prescriptions": "Đơn thuốc",
     "profile": "Hồ sơ cá nhân",
     "schedule": "Lịch làm việc",
     "history": "Lịch sử",
     "users": "Người dùng",
     "doctors": "Bác sĩ",
-    "statistics": "Thống kê"
+    "specialties": "Chuyên khoa",
+    "patients": "Bệnh nhân",
+    "statistics": "Thống kê",
+    "scheduleApproval": "Duyệt lịch"
   },
   "dashboard": {
     "doctorDashboard": "Bảng điều khiển Bác sĩ",
@@ -186,5 +192,136 @@
     "female": "Nữ",
     "other": "Khác",
     "updateSuccess": "Đã cập nhật hồ sơ thành công!"
+  },
+  "manager": {
+    "doctorsList": "Danh sách Bác sĩ",
+    "doctorsDesc": "Danh sách các bác sĩ thuộc khoa bạn đang quản lý.",
+    "noDoctors": "Không có bác sĩ",
+    "noDoctorsDesc": "Chưa có bác sĩ nào được phân công vào khoa này.",
+    "doctor": "Bác sĩ",
+    "specialty": "Chuyên khoa",
+    "contact": "Liên hệ",
+    "fee": "Phí khám",
+    "status": "Trạng thái",
+    "active": "Hoạt động",
+    "inactive": "Tạm khóa",
+    "free": "Miễn phí",
+    "loadDoctorsError": "Có lỗi xảy ra khi tải danh sách bác sĩ.",
+    "scheduleApproval": "Duyệt lịch làm việc",
+    "scheduleApprovalDesc": "Quản lý và xét duyệt lịch làm việc của các bác sĩ trong khoa.",
+    "noSchedules": "Không có lịch làm việc",
+    "noSchedulesDesc": "Chưa có lịch làm việc nào được đăng ký trong khoa của bạn.",
+    "workingDate": "Ngày làm việc",
+    "time": "Thời gian",
+    "rejectReason": "Lý do từ chối",
+    "actions": "Thao tác",
+    "approved": "Đã duyệt",
+    "rejected": "Từ chối",
+    "pending": "Chờ duyệt",
+    "approve": "Duyệt",
+    "reject": "Từ chối",
+    "rejectModalTitle": "Từ chối lịch làm việc",
+    "rejectReasonLabel": "Lý do từ chối",
+    "rejectReasonPlaceholder": "Nhập lý do từ chối lịch làm việc này...",
+    "cancel": "Hủy",
+    "confirmReject": "Xác nhận từ chối",
+    "approveSuccess": "Đã duyệt lịch thành công",
+    "approveError": "Không thể duyệt lịch",
+    "rejectSuccess": "Đã từ chối lịch thành công",
+    "rejectError": "Không thể từ chối lịch. Vui lòng thử lại.",
+    "loadSchedulesError": "Có lỗi xảy ra khi tải danh sách lịch làm việc.",
+    "dashboardLoadError": "Có lỗi xảy ra khi tải dữ liệu tổng quan.",
+    "welcome": "Xin chào,",
+    "managerTitle": "Trưởng Khoa",
+    "dashboardDesc": "Quản lý bác sĩ và phê duyệt lịch làm việc của khoa.",
+    "viewDoctors": "Xem Bác sĩ",
+    "approveSchedules": "Duyệt lịch",
+    "totalDoctors": "Bác sĩ thuộc khoa",
+    "pendingSchedules": "Lịch chờ duyệt",
+    "approvedSchedules": "Lịch đã duyệt",
+    "rejectedSchedules": "Lịch bị từ chối",
+    "recentPendingSchedules": "Lịch đang chờ duyệt gần đây",
+    "viewAll": "Xem tất cả",
+    "noPendingSchedules": "Không có lịch làm việc nào đang chờ duyệt.",
+    "review": "Xét duyệt",
+    "doctorsInSpecialty": "Bác sĩ trong khoa",
+    "searchDoctor": "Tìm kiếm bác sĩ...",
+    "searchDoctorPlaceholder": "Tìm kiếm theo tên, sđt, email...",
+    "allStatus": "Tất cả trạng thái",
+    "newest": "Mới nhất",
+    "oldest": "Cũ nhất",
+    "noFilterResults": "Không tìm thấy kết quả nào phù hợp với bộ lọc."
+  },
+  "admin": {
+    "doctorsList": "Quản lý Bác sĩ",
+    "doctorsDesc": "Quản lý danh sách bác sĩ trên toàn hệ thống.",
+    "specialtiesList": "Quản lý Chuyên khoa",
+    "specialtiesDesc": "Quản lý danh sách chuyên khoa trên hệ thống.",
+    "usersList": "Quản lý Người dùng",
+    "usersDesc": "Phân quyền và quản lý tài khoản người dùng.",
+    "patientsList": "Quản lý Bệnh nhân",
+    "patientsDesc": "Tra cứu danh sách và thông tin bệnh nhân trên hệ thống.",
+    
+    "table": {
+      "doctor": "Bác sĩ",
+      "specialty": "Chuyên khoa",
+      "contact": "Liên hệ",
+      "status": "Trạng thái",
+      "actions": "Thao tác",
+      "patient": "Bệnh nhân",
+      "gender": "Giới tính",
+      "joinDate": "Ngày tham gia",
+      "detail": "Chi tiết",
+      "user": "Người dùng",
+      "role": "Quyền"
+    },
+    
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Tạm khóa",
+      "you": "Bạn"
+    },
+
+    "role": {
+      "all": "Tất cả quyền",
+      "admin": "Quản trị viên",
+      "doctor": "Bác sĩ",
+      "patient": "Bệnh nhân",
+      "manager": "Quản lý chuyên khoa"
+    },
+
+    "dashboard": {
+      "welcome": "Chào mừng bạn đến với bảng điều khiển dành cho Quản trị viên.",
+      "totalDoctors": "Tổng số Bác sĩ",
+      "totalSpecialties": "Tổng số Chuyên khoa",
+      "totalUsers": "Tổng số Người dùng",
+      "totalPatients": "Tổng số Bệnh nhân",
+      "quickActions": "Thao tác nhanh",
+      "quickActionsDesc": "Các lối tắt truy cập nhanh vào các chức năng quản lý chính của hệ thống."
+    },
+
+    "search": {
+      "doctor": "Tìm kiếm theo tên, sđt, email...",
+      "specialty": "Tìm kiếm chuyên khoa...",
+      "user": "Tìm kiếm người dùng...",
+      "patient": "Tìm kiếm bệnh nhân..."
+    },
+    
+    "modal": {
+      "patientProfile": "Hồ sơ Bệnh nhân",
+      "userPermission": "Phân quyền Người dùng",
+      "patientId": "Mã bệnh nhân (ID)",
+      "contactInfo": "Thông tin liên hệ & Cá nhân",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "gender": "Giới tính",
+      "dob": "Ngày sinh",
+      "address": "Địa chỉ",
+      "male": "Nam",
+      "female": "Nữ",
+      "other": "Khác",
+      "notUpdated": "Chưa cập nhật",
+      "close": "Đóng"
+    }
   }
 }

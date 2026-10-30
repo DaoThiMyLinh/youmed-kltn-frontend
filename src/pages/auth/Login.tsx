@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginThunk, selectAuthLoading, selectAuthError, clearError } from '../../store/features/auth/authSlice';
 import type { LoginRequest } from '../../types/auth';
-import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, FormField, Input, PasswordInput, ErrorMessage } from '../../components';
+import { Button, Card, CardHeader, CardDescription, CardContent, CardFooter, FormField, Input, PasswordInput, ErrorMessage, Logo } from '../../components';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -26,12 +26,14 @@ const Login = () => {
 
     if (loginThunk.fulfilled.match(resultAction)) {
       const role = resultAction.payload.role;
-      if (role === 'DOCTOR') {
-        navigate('/doctor-dashboard');
-      } else if (role === 'ADMIN') {
-        navigate('/admin-dashboard');
+      if (role === 'DEPARTMENT_MANAGER') {
+        navigate('/manager');
+      } else if (role === 'DOCTOR') {
+        navigate('/doctor');
+      } else if (role === 'ADMIN' || role === 'RECEPTIONIST') {
+        navigate('/admin');
       } else {
-        navigate('/patient-dashboard');
+        navigate('/patient');
       }
     }
   };
@@ -39,8 +41,10 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-extrabold text-gradient drop-shadow-sm tracking-tight">YOUMED</CardTitle>
+        <CardHeader className="text-center flex flex-col items-center">
+          <div className="mb-2">
+            <Logo size="lg" to="/patient" showTagline />
+          </div>
           <CardDescription>Nhập thông tin của bạn để đăng nhập</CardDescription>
         </CardHeader>
         <CardContent>

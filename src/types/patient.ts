@@ -15,6 +15,8 @@ export interface Appointment {
   id: number;
   patientId: number;
   patientName: string;
+  patientPhone?: string;
+  patientGender?: string;
   doctorId: number;
   doctorName: string;
   specialization: string;
@@ -22,6 +24,9 @@ export interface Appointment {
   reason: string;
   status: AppointmentStatus;
   createdAt: string;
+  hasReviewed?: boolean;
+  reviewRating?: number;
+  reviewId?: number;
 }
 
 export interface UpdateProfileRequest {

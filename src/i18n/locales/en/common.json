@@ -34,20 +34,25 @@
     "doctorName": "Doctor Name",
     "specialty": "Specialty",
     "consultationFee": "Consultation Fee",
-    "standard": "Standard"
+    "standard": "Standard",
+    "free": "Free"
   },
   "menu": {
     "dashboard": "Dashboard",
     "appointments": "Appointments",
     "bookAppointment": "Book Appointment",
     "medicalHistory": "Medical History",
+    "medicalRecords": "History",
     "prescriptions": "Prescriptions",
     "profile": "Profile",
     "schedule": "Schedule",
     "history": "History",
     "users": "Users",
     "doctors": "Doctors",
-    "statistics": "Statistics"
+    "specialties": "Specialties",
+    "patients": "Patients",
+    "statistics": "Statistics",
+    "scheduleApproval": "Schedule Approval"
   },
   "dashboard": {
     "doctorDashboard": "Doctor Dashboard",
@@ -186,5 +191,136 @@
     "female": "Female",
     "other": "Other",
     "updateSuccess": "Profile updated successfully!"
+  },
+  "manager": {
+    "doctorsList": "Doctors List",
+    "doctorsDesc": "List of doctors in the specialty you manage.",
+    "noDoctors": "No doctors found",
+    "noDoctorsDesc": "No doctors have been assigned to this specialty yet.",
+    "doctor": "Doctor",
+    "specialty": "Specialty",
+    "contact": "Contact",
+    "fee": "Consultation Fee",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Suspended",
+    "free": "Free",
+    "loadDoctorsError": "An error occurred while loading the doctors list.",
+    "scheduleApproval": "Schedule Approval",
+    "scheduleApprovalDesc": "Manage and approve doctors' working schedules in your specialty.",
+    "noSchedules": "No schedules found",
+    "noSchedulesDesc": "No schedules have been registered in your specialty yet.",
+    "workingDate": "Working Date",
+    "time": "Time",
+    "rejectReason": "Rejection Reason",
+    "actions": "Actions",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectModalTitle": "Reject Working Schedule",
+    "rejectReasonLabel": "Rejection Reason",
+    "rejectReasonPlaceholder": "Enter reason for rejecting this schedule...",
+    "cancel": "Cancel",
+    "confirmReject": "Confirm Rejection",
+    "approveSuccess": "Schedule approved successfully",
+    "approveError": "Failed to approve schedule",
+    "rejectSuccess": "Schedule rejected successfully",
+    "rejectError": "Failed to reject schedule. Please try again.",
+    "loadSchedulesError": "An error occurred while loading the schedules list.",
+    "dashboardLoadError": "An error occurred while loading dashboard data.",
+    "welcome": "Welcome,",
+    "managerTitle": "Department Manager",
+    "dashboardDesc": "Manage doctors and approve working schedules for your specialty.",
+    "viewDoctors": "View Doctors",
+    "approveSchedules": "Approve Schedules",
+    "totalDoctors": "Total Doctors",
+    "pendingSchedules": "Pending Schedules",
+    "approvedSchedules": "Approved Schedules",
+    "rejectedSchedules": "Rejected Schedules",
+    "recentPendingSchedules": "Recent Pending Schedules",
+    "viewAll": "View All",
+    "noPendingSchedules": "No pending schedules found.",
+    "review": "Review",
+    "doctorsInSpecialty": "Doctors in Specialty",
+    "searchDoctor": "Search doctors...",
+    "searchDoctorPlaceholder": "Search by name, phone, email...",
+    "allStatus": "All Statuses",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "noFilterResults": "No results found matching your filters."
+  },
+  "admin": {
+    "doctorsList": "Doctors List",
+    "doctorsDesc": "Manage the list of doctors across the system.",
+    "specialtiesList": "Specialties Management",
+    "specialtiesDesc": "Manage the list of specialties across the system.",
+    "usersList": "Users Management",
+    "usersDesc": "Manage roles and user accounts.",
+    "patientsList": "Patients List",
+    "patientsDesc": "Search and manage patient records across the system.",
+    
+    "table": {
+      "doctor": "Doctor",
+      "specialty": "Specialty",
+      "contact": "Contact",
+      "status": "Status",
+      "actions": "Actions",
+      "patient": "Patient",
+      "gender": "Gender",
+      "joinDate": "Join Date",
+      "detail": "Detail",
+      "user": "User",
+      "role": "Role"
+    },
+    
+    "status": {
+      "active": "Active",
+      "inactive": "Suspended",
+      "you": "You"
+    },
+
+    "role": {
+      "all": "All Roles",
+      "admin": "Admin",
+      "doctor": "Doctor",
+      "patient": "Patient",
+      "manager": "Department Manager"
+    },
+
+    "dashboard": {
+      "welcome": "Welcome to the Admin Control Panel.",
+      "totalDoctors": "Total Doctors",
+      "totalSpecialties": "Total Specialties",
+      "totalUsers": "Total Users",
+      "totalPatients": "Total Patients",
+      "quickActions": "Quick Actions",
+      "quickActionsDesc": "Quick shortcuts to main management functions of the system."
+    },
+
+    "search": {
+      "doctor": "Search by name, phone, email...",
+      "specialty": "Search specialty...",
+      "user": "Search user...",
+      "patient": "Search patient..."
+    },
+    
+    "modal": {
+      "patientProfile": "Patient Profile",
+      "userPermission": "User Permission",
+      "patientId": "Patient ID",
+      "contactInfo": "Contact Information",
+      "email": "Email",
+      "phone": "Phone",
+      "gender": "Gender",
+      "dob": "Date of Birth",
+      "address": "Address",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "notUpdated": "Not updated",
+      "close": "Close"
+    }
   }
 }

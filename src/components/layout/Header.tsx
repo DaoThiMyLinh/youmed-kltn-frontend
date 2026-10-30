@@ -4,6 +4,7 @@ import { FiMenu, FiLogOut, FiUser } from 'react-icons/fi';
 import { logout, selectUserRole, selectUserName } from '../../store/features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Logo } from '../common/Logo';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -37,8 +38,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         >
           <FiMenu className="w-5 h-5" />
         </button>
-        <div className="font-bold text-xl text-gradient tracking-tight hidden lg:block drop-shadow-sm">
-          YouMed
+        <div className="hidden lg:block">
+          <Logo size="sm" />
         </div>
       </div>
 
@@ -46,9 +47,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-slate-900">{name || 'Guest User'}</p>
-            <p className="text-xs text-indigo-600 font-bold">{role || 'GUEST'}</p>
+            <p className="text-xs text-emerald-600 font-bold">{role || 'GUEST'}</p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-indigo-500 overflow-hidden border border-indigo-200 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center text-emerald-500 overflow-hidden border border-emerald-200 shadow-sm">
              <FiUser className="w-6 h-6 mt-1" />
           </div>
         </div>

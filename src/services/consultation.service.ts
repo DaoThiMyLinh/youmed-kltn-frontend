@@ -26,12 +26,17 @@ export const consultationService = {
     return response.data;
   },
 
+  getAppointmentById: async (id: number): Promise<Appointment> => {
+    const response = await axiosClient.get<Appointment>(`/appointments/${id}`);
+    return response.data;
+  },
+
   getMedicalRecordByAppointmentId: async (appointmentId: number): Promise<MedicalRecord | null> => {
     try {
       const response = await axiosClient.get<MedicalRecord>(`/medical-records/appointment/${appointmentId}`);
       return response.data;
     } catch (error: any) {
-      if (error.response?.status === 404) {
+      if (error.response?.status === 404 || error.response?.status === 400) {
         return null;
       }
       throw error;
@@ -53,7 +58,7 @@ export const consultationService = {
       const response = await axiosClient.get<Prescription>(`/prescriptions/medical-record/${medicalRecordId}`);
       return response.data;
     } catch (error: any) {
-      if (error.response?.status === 404) {
+      if (error.response?.status === 404 || error.response?.status === 400) {
         return null;
       }
       throw error;
