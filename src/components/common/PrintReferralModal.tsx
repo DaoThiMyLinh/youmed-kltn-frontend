@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { FiPrinter, FiX, FiShare2, FiCheck } from 'react-icons/fi';
 import type { Appointment } from '../../types/patient';
 import type { MedicalRecord } from '../../types/consultation';
@@ -16,6 +17,34 @@ export const PrintReferralModal: React.FC<PrintReferralModalProps> = ({
   appointment,
   medicalRecord,
 }) => {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // Khóa cuộn trang nền và đặt lại vị trí cuộn lên đầu khi mở modal
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+
+      const timer = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+        }
+      }, 20);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      window.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = '';
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
@@ -31,47 +60,54 @@ export const PrintReferralModal: React.FC<PrintReferralModalProps> = ({
     ? medicalRecord.referralServices.split(',').map(s => s.trim()).filter(Boolean)
     : [];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-hidden">
-      {/* Container Preview */}
-      <div className="relative w-full max-w-4xl h-[92vh] max-h-[92vh] bg-slate-100 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-2 sm:p-4 overflow-hidden"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      {/* Container Preview Dialog */}
+      <div className="relative w-full max-w-4xl h-[92vh] max-h-[92vh] bg-slate-100 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-300">
         
         {/* Top Controls Bar - Not Printed */}
-        <div className="no-print shrink-0 bg-white px-6 py-4 border-b border-slate-200 flex items-center justify-between shadow-xs z-10">
+        <div className="no-print shrink-0 bg-white px-5 py-3 border-b border-slate-200 flex items-center justify-between shadow-xs z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
               <FiShare2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-base">Xem trước Giấy giới thiệu & Chỉ định cận lâm sàng</h3>
-              <p className="text-xs text-slate-500">Mẫu in tiêu chuẩn phục vụ chuyển tuyến xét nghiệm, X-quang, MRI chuyên sâu</p>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">Xem trước Giấy giới thiệu chuyển tuyến</h3>
+              <p className="text-xs text-slate-500">Mẫu in tiêu chuẩn A4 phục vụ chụp chiếu, xét nghiệm chuyên sâu</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={handlePrint}
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
-              <FiPrinter className="w-4 h-4" /> In ngay / Lưu PDF
+              <FiPrinter className="w-4 h-4" /> In phiếu / Lưu PDF
             </button>
             <button
               onClick={onClose}
-              className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              title="Đóng"
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Đóng (Esc)"
             >
               <FiX className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Scrollable Paper Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-200/70">
-          
-          {/* Printable Document (A4 Styling) */}
+        {/* Scrollable Paper Area: Use block with mx-auto on paper to avoid negative coordinate clipping */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-6 bg-slate-200/90"
+        >
+          {/* Printable Document (A4 Clean Styling) */}
           <div 
             id="printable-referral-record" 
-            className="w-full max-w-[210mm] bg-white text-slate-900 p-8 sm:p-12 rounded-xl shadow-lg border border-slate-300/80 leading-normal font-sans"
+            className="w-full max-w-[760px] mx-auto bg-white text-slate-900 p-6 sm:p-10 rounded-lg shadow-md border border-slate-300 leading-normal font-sans box-border"
           >
             {/* Header: National Emblem & Clinic Info */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
@@ -276,37 +312,39 @@ export const PrintReferralModal: React.FC<PrintReferralModalProps> = ({
       {/* Global Print Style Injection */}
       <style>{`
         @media print {
-          body * {
+          body {
             visibility: hidden !important;
+            background: white !important;
           }
           #printable-referral-record,
           #printable-referral-record * {
             visibility: visible !important;
           }
           #printable-referral-record {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
-            height: auto !important;
             margin: 0 !important;
-            padding: 10mm 15mm !important;
+            padding: 8mm 12mm !important;
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
             background: white !important;
-            z-index: 999999 !important;
           }
           .no-print {
             display: none !important;
           }
           @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 8mm;
           }
         }
       `}</style>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 export default PrintReferralModal;
+

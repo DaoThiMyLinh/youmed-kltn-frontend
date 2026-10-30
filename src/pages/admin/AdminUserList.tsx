@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { userService } from '../../services/user.service';
 import type { User, Role } from '../../types/user';
 import type { AdminUpdateUserRequest } from '../../services/user.service';
-import { Card, Badge, ErrorMessage, EmptyState, Button } from '../../components';
+import { Card, Badge, ErrorMessage, EmptyState, Button, Toast, ConfirmModal } from '../../components';
 import { FiUsers, FiLock, FiUnlock, FiEdit2, FiX, FiPlus } from 'react-icons/fi';
 import { selectAuth } from '../../store/features/auth/authSlice';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,22 @@ const AdminUserList = () => {
   const { t } = useTranslation();
   const { token } = useSelector(selectAuth);
   
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; title: string; message?: string } | null>(null);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    confirmText?: string;
+    variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
+    action: () => Promise<void>;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: async () => {},
+  });
+  const [actionLoading, setActionLoading] = useState(false);
+
   let currentAdminEmail = '';
   if (token) {
     try {
@@ -82,25 +98,50 @@ const AdminUserList = () => {
     setEditingUser(null);
   };
 
-  const handleToggleStatus = async (user: User) => {
+  const handleToggleStatus = (user: User) => {
     if (user.email === currentAdminEmail) {
-      alert('Bạn không thể khóa tài khoản của chính mình.');
+      setToast({
+        type: 'warning',
+        title: 'Thao tác bị từ chối',
+        message: 'Bạn không thể khóa tài khoản của chính mình.',
+      });
       return;
     }
 
-    const actionName = user.enabled ? 'khóa' : 'mở khóa';
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionName} tài khoản của ${user.fullName}?`)) return;
-    
-    try {
-      const data: AdminUpdateUserRequest = {
-        role: user.role,
-        enabled: !user.enabled
-      };
-      await userService.adminUpdateUserStatus(user.id, data);
-      fetchUsers();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra.');
-    }
+    const isLocking = user.enabled;
+    const actionName = isLocking ? 'khóa' : 'mở khóa kích hoạt';
+    setConfirmConfig({
+      isOpen: true,
+      title: isLocking ? 'Xác nhận khóa tài khoản' : 'Mở khóa tài khoản',
+      message: `Bạn có chắc chắn muốn ${actionName} tài khoản của ${user.fullName}?`,
+      confirmText: isLocking ? 'Khóa tài khoản' : 'Kích hoạt',
+      variant: isLocking ? 'warning' : 'success',
+      action: async () => {
+        try {
+          setActionLoading(true);
+          const data: AdminUpdateUserRequest = {
+            role: user.role,
+            enabled: !user.enabled
+          };
+          await userService.adminUpdateUserStatus(user.id, data);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setToast({
+            type: 'success',
+            title: 'Thành công',
+            message: `Đã ${actionName} tài khoản của ${user.fullName}.`,
+          });
+          fetchUsers();
+        } catch (err: any) {
+          setToast({
+            type: 'error',
+            title: 'Thất bại',
+            message: err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái tài khoản.',
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,7 +149,11 @@ const AdminUserList = () => {
     if (!editingUser) return;
 
     if (editingUser.email === currentAdminEmail && formData.role !== 'ADMIN') {
-      alert('Bạn không thể gỡ quyền ADMIN của chính mình.');
+      setToast({
+        type: 'warning',
+        title: 'Thao tác bị từ chối',
+        message: 'Bạn không thể gỡ quyền ADMIN của chính mình.',
+      });
       return;
     }
 
@@ -121,9 +166,18 @@ const AdminUserList = () => {
 
       await userService.adminUpdateUserStatus(editingUser.id, data);
       closeModal();
+      setToast({
+        type: 'success',
+        title: 'Thành công',
+        message: `Đã cập nhật thông tin tài khoản ${editingUser.fullName}.`,
+      });
       fetchUsers();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra.');
+      setToast({
+        type: 'error',
+        title: 'Cập nhật thất bại',
+        message: err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -396,8 +450,33 @@ const AdminUserList = () => {
           fetchUsers();
         }}
       />
+
+      {/* Floating Modern Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
+
+      {/* Unified Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmConfig.action}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        variant={confirmConfig.variant}
+        isLoading={actionLoading}
+      />
     </div>
   );
 };
 
 export default AdminUserList;
+

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { specialtyService } from '../../services/specialty.service';
 import type { Specialty } from '../../types/specialty';
 import { motion } from 'framer-motion';
+import { formatGender } from '../../utils/formatters';
 
 const ManagerProfile = () => {
   const dispatch = useDispatch<any>();
@@ -145,8 +146,8 @@ const ManagerProfile = () => {
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-2">
                       <FiUsers className="w-3.5 h-3.5" /> {t('profile.gender')}
                     </span>
-                    <span className="text-slate-800 font-semibold text-lg capitalize">
-                      {profile.gender ? t(`profile.${profile.gender.toLowerCase()}`) : t('profile.notProvided')}
+                    <span className="text-slate-800 font-semibold text-lg">
+                      {formatGender(profile.gender, t)}
                     </span>
                   </div>
 

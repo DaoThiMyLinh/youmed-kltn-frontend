@@ -191,6 +191,9 @@
     "male": "Nam",
     "female": "Nữ",
     "other": "Khác",
+    "nam": "Nam",
+    "nu": "Nữ",
+    "khac": "Khác",
     "updateSuccess": "Đã cập nhật hồ sơ thành công!"
   },
   "manager": {

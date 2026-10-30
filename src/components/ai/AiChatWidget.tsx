@@ -23,6 +23,13 @@ interface MessageItem extends ChatMessage {
   quickSuggestions?: string[] | null;
 }
 
+const LOADING_HINTS = [
+  'Đang tra cứu dữ liệu...',
+  'Đang phân tích triệu chứng...',
+  'Đang tìm bác sĩ phù hợp...',
+  'Đang chuẩn bị câu trả lời...',
+];
+
 export const AiChatWidget: React.FC = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +37,20 @@ export const AiChatWidget: React.FC = () => {
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+  const [loadingHintIndex, setLoadingHintIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Rotate loading hints every 1.5s while AI is thinking
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadingHintIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingHintIndex((prev) => (prev + 1) % LOADING_HINTS.length);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   // Auto-scroll to bottom of chat
   const scrollToBottom = () => {
@@ -70,6 +90,7 @@ export const AiChatWidget: React.FC = () => {
             '👋 Xin chào! Tôi là **Trợ lý Y tế AI của YouMed**.\n\nTôi kết nối trực tiếp với cơ sở dữ liệu phòng khám để hỗ trợ bạn:\n• Tư vấn chuyên khoa theo triệu chứng bạn đang gặp phải.\n• Giới thiệu bác sĩ chuyên khoa & bảng giá khám bệnh niêm yết.\n• Hướng dẫn bạn đặt lịch khám trực tuyến nhanh chóng.\n\nBạn hãy mô tả triệu chứng hoặc đặt câu hỏi bất kỳ nhé!',
           timestamp: new Date(),
           quickSuggestions: [
+            'Lịch hẹn của tôi',
             'Tôi bị đau dạ dày, ợ chua',
             'Tìm bác sĩ Tim mạch',
             'Bảng giá khám bệnh',
@@ -80,6 +101,31 @@ export const AiChatWidget: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSuggestionClick = (sug: string) => {
+    const lower = sug.toLowerCase();
+    if (lower.includes('đăng nhập')) {
+      setIsOpen(false);
+      navigate('/login');
+      return;
+    }
+    if (lower.includes('đăng ký')) {
+      setIsOpen(false);
+      navigate('/register');
+      return;
+    }
+    if (lower.includes('lịch sử khám')) {
+      setIsOpen(false);
+      navigate('/patient/history');
+      return;
+    }
+    if (lower.includes('đặt lịch khám mới') || lower.includes('danh sách bác sĩ')) {
+      setIsOpen(false);
+      navigate('/patient/doctors');
+      return;
+    }
+    handleSendMessage(sug);
   };
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -252,7 +298,7 @@ export const AiChatWidget: React.FC = () => {
                 <div>
                   <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-1.5">
                     Trợ lý Y tế AI YouMed
-                    <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">DB Live</span>
+                    <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">Trực tuyến</span>
                   </h3>
                   <p className="text-[11px] text-emerald-100 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-300 inline-block"></span>
@@ -386,7 +432,7 @@ export const AiChatWidget: React.FC = () => {
                       {msg.quickSuggestions.map((sug, sIdx) => (
                         <button
                           key={sIdx}
-                          onClick={() => handleSendMessage(sug)}
+                          onClick={() => handleSuggestionClick(sug)}
                           className="text-[11px] px-2.5 py-1 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium transition-all shadow-2xs hover:border-emerald-300 flex items-center gap-1 cursor-pointer"
                         >
                           <span>{sug}</span>
@@ -404,11 +450,15 @@ export const AiChatWidget: React.FC = () => {
 
               {/* Typing Loader */}
               {isLoading && (
-                <div className="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-2xl rounded-bl-xs w-28 text-slate-500">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                  <span className="text-[10px] text-slate-400 font-medium ml-1">Đang tra cứu...</span>
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white border border-slate-200/90 rounded-2xl rounded-bl-xs w-fit shadow-xs">
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
+                    {LOADING_HINTS[loadingHintIndex]}
+                  </span>
                 </div>
               )}
               <div ref={messagesEndRef} />

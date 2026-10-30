@@ -7,6 +7,7 @@ import { changePassword } from '../../services/patient.service';
 import { useTranslation } from 'react-i18next';
 import { FiArrowLeft, FiUser, FiLock, FiCheck } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { normalizeGender } from '../../utils/formatters';
 
 const ManagerProfileEdit = () => {
   const dispatch = useDispatch<any>();
@@ -48,7 +49,7 @@ const ManagerProfileEdit = () => {
         fullName: profile.fullName || '',
         phone: profile.phone || '',
         address: profile.address || '',
-        gender: profile.gender || '',
+        gender: normalizeGender(profile.gender),
         dateOfBirth: profile.dateOfBirth || '',
       });
     }

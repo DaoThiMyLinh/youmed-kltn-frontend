@@ -251,19 +251,32 @@ const Home = () => {
                         {doctor.specialty?.name || 'Bác sĩ đa khoa'}
                       </p>
                       
-                      <div className="flex items-center gap-1 text-yellow-400 mb-6 bg-yellow-50 px-3 py-1.5 rounded-full">
-                        <FiStar className="fill-current w-4 h-4" />
-                        <span className="text-slate-800 font-bold text-sm ml-1">5.0</span>
-                        <span className="text-slate-400 text-sm ml-1 font-medium">(120+ lượt khám)</span>
+                      <div className="flex items-center gap-1.5 text-amber-500 mb-6 bg-amber-50/60 px-3 py-1.5 rounded-full border border-amber-100/60">
+                        <FiStar className="fill-current w-4 h-4 text-amber-400" />
+                        <span className="text-slate-800 font-bold text-sm">
+                          {doctor.averageRating && doctor.averageRating > 0 ? doctor.averageRating.toFixed(1) : 'Chưa có'}
+                        </span>
+                        <span className="text-slate-400 text-xs font-medium ml-0.5">
+                          ({doctor.totalReviews ? `${doctor.totalReviews} đánh giá` : '0 đánh giá'})
+                        </span>
                       </div>
                     </div>
                     
-                    <Link
-                      to={`/patient/doctors/${doctor.id}`}
-                      className="w-full bg-slate-900 text-white font-semibold py-3.5 rounded-2xl hover:bg-emerald-600 transition-colors shadow-md hover:shadow-lg text-center mt-auto"
-                    >
-                      Đặt khám ngay
-                    </Link>
+                    {/* Actions */}
+                    <div className="flex gap-2.5 mt-auto w-full">
+                      <Link
+                        to={`/patient/doctors/${doctor.id}`}
+                        className="flex-1 bg-slate-50 text-slate-700 font-semibold py-3 rounded-2xl text-center hover:bg-slate-100 transition-colors border border-slate-100"
+                      >
+                        Hồ sơ
+                      </Link>
+                      <Link
+                        to={`/patient/booking?doctorId=${doctor.id}`}
+                        className="flex-[1.5] bg-slate-900 text-white font-semibold py-3 rounded-2xl text-center hover:bg-emerald-600 transition-colors shadow-sm hover:shadow-md"
+                      >
+                        Đặt lịch
+                      </Link>
+                    </div>
                   </div>
                 </motion.div>
               ))}

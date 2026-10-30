@@ -216,9 +216,16 @@ const DoctorConsultation = () => {
       setIsStatusUpdating(true);
       await consultationService.updateAppointmentStatus(appointment.id, newStatus);
       setAppointment({ ...appointment, status: newStatus as any });
-      setToast({ message: `Status updated to ${newStatus}`, type: 'success' });
+      setToast({ 
+        message: newStatus === 'COMPLETED' 
+          ? 'Đã hoàn tất ca khám và lưu vào mục Lịch sử khám bệnh.' 
+          : newStatus === 'IN_PROGRESS' 
+          ? 'Đã bắt đầu phiên khám bệnh.' 
+          : `Đã cập nhật trạng thái lịch khám`, 
+        type: 'success' 
+      });
     } catch (error: any) {
-      setToast({ message: error.response?.data?.message || 'Failed to update status', type: 'error' });
+      setToast({ message: error.response?.data?.message || 'Không thể cập nhật trạng thái', type: 'error' });
     } finally {
       setIsStatusUpdating(false);
     }
@@ -286,6 +293,15 @@ const DoctorConsultation = () => {
   const handleItemChange = (index: number, field: keyof PrescriptionItem, value: string) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Tự động gợi ý đơn vị khi bác sĩ chọn thuốc từ danh mục
+    if (field === 'medicineName') {
+      const matched = masterMedicines.find(m => m.name.toLowerCase() === value.trim().toLowerCase());
+      if (matched && matched.unit && !newItems[index].dosage) {
+        newItems[index].dosage = `1 ${matched.unit}`;
+      }
+    }
+    
     setItems(newItems);
   };
 
@@ -352,50 +368,87 @@ const DoctorConsultation = () => {
             <p className="text-sm text-slate-500 font-medium">Phiên làm việc với bệnh nhân</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {medicalRecord && (
-            <Button 
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Status Badge */}
+          <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border shadow-2xs select-none ${
+            appointment.status === 'COMPLETED' ? 'bg-slate-100 text-slate-700 border-slate-200' : 
+            appointment.status === 'IN_PROGRESS' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 
+            appointment.status === 'CHECKED_IN' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${
+              appointment.status === 'COMPLETED' ? 'bg-slate-400' :
+              appointment.status === 'IN_PROGRESS' ? 'bg-emerald-500 animate-pulse' :
+              appointment.status === 'CHECKED_IN' ? 'bg-amber-500' : 'bg-emerald-500'
+            }`} />
+            <span>{t(`status.${appointment.status}`)}</span>
+          </div>
+
+          <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+
+          {/* Nút In đơn thuốc & Bệnh án */}
+          {(medicalRecord || prescription) && (
+            <button 
               type="button" 
               onClick={() => setPrintModalOpen(true)}
-              leftIcon={<FiPrinter className="w-4 h-4 text-emerald-600" />}
-              className="bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border-2 border-emerald-200/90 font-bold shadow-xs transition-all"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 text-xs font-semibold shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+              title="In đơn thuốc và hồ sơ bệnh án"
             >
-              In đơn thuốc & Bệnh án
-            </Button>
+              <div className="w-5 h-5 rounded-md bg-emerald-50 group-hover:bg-emerald-100/90 flex items-center justify-center text-emerald-600 transition-colors">
+                <FiPrinter className="w-3.5 h-3.5" />
+              </div>
+              <span>In đơn thuốc & Bệnh án</span>
+            </button>
           )}
 
+          {/* Nút In Giấy giới thiệu */}
           {medicalRecord && (medicalRecord.referralServices || medicalRecord.referralTarget) && (
-            <Button 
+            <button 
               type="button" 
               onClick={() => setPrintReferralModalOpen(true)}
-              leftIcon={<FiShare2 className="w-4 h-4 text-teal-600" />}
-              className="bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 border-2 border-teal-200/90 font-bold shadow-xs transition-all"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-teal-50/70 border border-slate-200 hover:border-teal-300 text-slate-700 hover:text-teal-800 text-xs font-semibold shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+              title="In giấy giới thiệu chuyển tuyến"
             >
-              In Giấy giới thiệu
-            </Button>
+              <div className="w-5 h-5 rounded-md bg-teal-50 group-hover:bg-teal-100/90 flex items-center justify-center text-teal-600 transition-colors">
+                <FiShare2 className="w-3.5 h-3.5" />
+              </div>
+              <span>In Giấy giới thiệu</span>
+            </button>
           )}
 
-          <div className={`px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider border shadow-sm ${
-            appointment.status === 'COMPLETED' ? 'bg-slate-50 text-slate-700 border-slate-200' : 
-            appointment.status === 'IN_PROGRESS' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-            appointment.status === 'CHECKED_IN' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-          }`}>
-            {t(`status.${appointment.status}`)}
-          </div>
-          
+          {/* Nút thao tác chính */}
           {appointment.status === 'PENDING' || appointment.status === 'CONFIRMED' ? (
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold shadow-sm">
-              <FiClock className="w-4 h-4 text-amber-600 shrink-0" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold shadow-2xs">
+              <FiClock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
               <span>Chờ Lễ tân tiếp nhận & Check-in</span>
             </div>
           ) : appointment.status === 'CHECKED_IN' ? (
-            <Button onClick={() => handleStatusChange('IN_PROGRESS')} isLoading={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700 shadow-md">
-              Bắt đầu Khám
-            </Button>
+            <button 
+              type="button"
+              onClick={() => handleStatusChange('IN_PROGRESS')} 
+              disabled={isStatusUpdating}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-sm hover:shadow transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isStatusUpdating ? (
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <FiActivity className="w-3.5 h-3.5" />
+              )}
+              <span>Bắt đầu Khám</span>
+            </button>
           ) : appointment.status === 'IN_PROGRESS' ? (
-            <Button onClick={() => handleStatusChange('COMPLETED')} leftIcon={<FiCheck />} isLoading={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700 shadow-md">
-              {t('consultation.completeConsultation')}
-            </Button>
+            <button 
+              type="button"
+              onClick={() => handleStatusChange('COMPLETED')} 
+              disabled={isStatusUpdating}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-sm hover:shadow transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isStatusUpdating ? (
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <FiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+              )}
+              <span>{t('consultation.completeConsultation')}</span>
+            </button>
           ) : null}
         </div>
       </motion.div>
@@ -478,43 +531,43 @@ const DoctorConsultation = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className={`bg-white rounded-3xl shadow-sm border overflow-hidden transition-colors ${isInProgress ? 'border-emerald-200 ring-4 ring-emerald-50/50' : 'border-slate-100'}`}
+            className={`bg-white rounded-2xl shadow-xs border overflow-hidden transition-colors ${isInProgress ? 'border-emerald-200 ring-2 ring-emerald-500/10' : 'border-slate-200'}`}
           >
-            <div className={`p-6 border-b flex items-center gap-3 ${isInProgress ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100'}`}>
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${isInProgress ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
-                <FiEdit3 className="w-6 h-6" />
+            <div className={`p-5 sm:p-6 border-b flex items-center gap-3.5 ${isInProgress ? 'bg-emerald-50/70 border-emerald-100' : 'bg-slate-50/80 border-slate-100'}`}>
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-2xs ${isInProgress ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                <FiEdit3 className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">{t('consultation.medicalRecord')}</h2>
-                <p className={`text-sm font-medium ${isInProgress ? 'text-emerald-600' : 'text-slate-500'}`}>Hồ sơ bệnh án điện tử</p>
+                <h2 className="text-lg font-bold text-slate-900">{t('consultation.medicalRecord')}</h2>
+                <p className={`text-xs font-medium ${isInProgress ? 'text-emerald-700' : 'text-slate-500'}`}>Hồ sơ bệnh án điện tử</p>
               </div>
             </div>
 
-            <div className="p-6 sm:p-8">
+            <div className="p-5 sm:p-7">
               {!isInProgress && !medicalRecord ? (
                 <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                    <FiFileText className="w-10 h-10 text-slate-300" />
+                  <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-4 border border-slate-200">
+                    <FiFileText className="w-8 h-8 text-slate-300" />
                   </div>
-                  <p className="text-slate-500 text-lg">{t('common.noData')}</p>
-                  <p className="text-slate-400 text-sm mt-2">Hãy nhấn "Bắt đầu Khám" để viết bệnh án.</p>
+                  <p className="text-slate-500 text-base">{t('common.noData')}</p>
+                  <p className="text-slate-400 text-xs mt-1">Hãy nhấn "Bắt đầu Khám" để viết bệnh án.</p>
                 </div>
               ) : !isInProgress && medicalRecord ? (
                 /* CHẾ ĐỘ XEM LẠI BỆNH ÁN: Chỉ hiển thị dữ liệu đã lưu, không cho chọn thêm */
                 <div className="space-y-6">
-                  <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-6 space-y-6">
+                  <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-5 space-y-5">
                     {/* Triệu chứng đã lưu */}
                     <div className="space-y-2">
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <FiActivity className="text-emerald-600" />
+                        <FiActivity className="text-emerald-600 w-3.5 h-3.5" />
                         {t('consultation.symptoms')}
                       </label>
                       {symptoms ? (
-                        <div className="flex flex-wrap gap-2 pt-1">
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
                           {symptoms.split(',').map((s, idx) => (
                             <span 
                               key={idx} 
-                              className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-3 py-1.5 rounded-xl font-medium text-sm shadow-2xs"
+                              className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2.5 py-1 rounded-lg font-medium text-xs shadow-2xs"
                             >
                               ✓ {s.trim()}
                             </span>
@@ -637,20 +690,20 @@ const DoctorConsultation = () => {
                 <div className="space-y-6">
                   {/* Thanh thông tin và bộ lọc chuyên khoa */}
                   {currentSpecialty && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/90 rounded-2xl p-3 px-4 shadow-2xs">
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50/80 border border-slate-200/80 rounded-xl px-4 py-2.5">
                       <div className="flex items-center gap-2">
-                        <FiFilter className="text-emerald-700 w-4 h-4" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-950">Chuyên khoa khám:</span>
-                        <span className="text-xs bg-emerald-600 text-white font-bold px-3 py-1 rounded-full shadow-xs">
+                        <FiFilter className="text-emerald-600 w-4 h-4" />
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Chuyên khoa khám:</span>
+                        <span className="text-xs font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-200/60 px-2.5 py-0.5 rounded-md">
                           {currentSpecialty}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => setFilterBySpecialty(!filterBySpecialty)}
-                        className="text-xs font-bold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-100/60 px-3.5 py-1.5 rounded-xl border border-emerald-300 transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                        className="text-xs font-medium text-slate-600 hover:text-emerald-700 bg-white hover:bg-emerald-50/50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-emerald-200 transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5"
                       >
-                        {filterBySpecialty ? '👁️ Xem danh mục tất cả chuyên khoa' : `🎯 Bấm để chỉ xem khoa ${currentSpecialty}`}
+                        {filterBySpecialty ? 'Hiển thị tất cả chuyên khoa' : `Chỉ xem khoa ${currentSpecialty}`}
                       </button>
                     </div>
                   )}
@@ -658,13 +711,13 @@ const DoctorConsultation = () => {
                   {/* Triệu chứng lâm sàng */}
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <FiActivity className="text-emerald-600" />
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <FiActivity className="text-emerald-600 w-3.5 h-3.5" />
                         {t('consultation.symptoms')}
                       </label>
                       <div className="flex items-center gap-2">
                         <select 
-                          className="text-xs bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium cursor-pointer transition-colors"
+                          className="text-xs bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium cursor-pointer transition-colors shadow-2xs"
                           onChange={e => {
                             if (e.target.value) {
                               handleToggleSymptom(e.target.value);
@@ -684,8 +737,8 @@ const DoctorConsultation = () => {
                     </div>
 
                     {/* Quick suggestion tags for symptoms */}
-                    <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-slate-50/80 rounded-2xl border border-slate-100">
-                      <span className="text-xs text-slate-400 font-semibold mr-1 flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="text-xs font-medium text-slate-400 flex items-center gap-1 mr-1">
                         <FiTag className="w-3 h-3 text-slate-400" /> Gợi ý {filterBySpecialty && currentSpecialty ? `khoa ${currentSpecialty}` : 'nhanh'}:
                       </span>
                       {displayedSymptoms.slice(0, 10).map(sym => {
@@ -695,10 +748,10 @@ const DoctorConsultation = () => {
                             key={sym.id}
                             type="button"
                             onClick={() => handleToggleSymptom(sym.name)}
-                            className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all ${
+                            className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-emerald-600 text-white shadow-xs scale-105'
-                                : 'bg-white hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300'
+                                ? 'bg-emerald-600 text-white font-semibold shadow-2xs'
+                                : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200/70 hover:border-emerald-300'
                             }`}
                             title={sym.description || sym.name}
                           >
@@ -709,7 +762,7 @@ const DoctorConsultation = () => {
                     </div>
 
                     <textarea 
-                      className="w-full rounded-2xl border-2 border-slate-100 p-4 text-slate-700 focus:ring-0 focus:border-emerald-400 bg-slate-50 focus:bg-white transition-colors resize-none"
+                      className="w-full rounded-lg border border-slate-200 p-3.5 text-sm text-slate-800 placeholder:text-slate-400 bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none shadow-2xs leading-relaxed"
                       rows={3}
                       placeholder="Ghi nhận triệu chứng lâm sàng (chọn từ gợi ý phía trên hoặc tự nhập tự do)..."
                       value={symptoms}
@@ -720,13 +773,13 @@ const DoctorConsultation = () => {
                   {/* Chẩn đoán bệnh */}
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <FiEdit3 className="text-teal-600" />
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <FiEdit3 className="text-teal-600 w-3.5 h-3.5" />
                         {t('appointment.diagnosis')} <span className="text-red-500">*</span>
                       </label>
                       <div className="flex items-center gap-2">
                         <select 
-                          className="text-xs bg-teal-50 hover:bg-teal-100 border border-teal-300 text-teal-800 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium cursor-pointer transition-colors"
+                          className="text-xs bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-medium cursor-pointer transition-colors shadow-2xs"
                           onChange={e => {
                             if (e.target.value) {
                               handleSelectDiagnosis(e.target.value);
@@ -746,8 +799,8 @@ const DoctorConsultation = () => {
                     </div>
 
                     {/* Quick suggestion tags for diagnoses */}
-                    <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-slate-50/80 rounded-2xl border border-slate-100">
-                      <span className="text-xs text-slate-400 font-semibold mr-1 flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="text-xs font-medium text-slate-400 flex items-center gap-1 mr-1">
                         <FiTag className="w-3 h-3 text-slate-400" /> Bệnh lý mẫu {filterBySpecialty && currentSpecialty ? `khoa ${currentSpecialty}` : ''}:
                       </span>
                       {displayedDiagnoses.slice(0, 8).map(diag => {
@@ -757,10 +810,10 @@ const DoctorConsultation = () => {
                             key={diag.id}
                             type="button"
                             onClick={() => handleSelectDiagnosis(diag.name)}
-                            className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all ${
+                            className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-teal-600 text-white shadow-xs scale-105'
-                                : 'bg-white hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300'
+                                ? 'bg-teal-600 text-white font-semibold shadow-2xs'
+                                : 'bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 border border-slate-200/70 hover:border-teal-300'
                             }`}
                             title={diag.description || diag.name}
                           >
@@ -771,7 +824,7 @@ const DoctorConsultation = () => {
                     </div>
 
                     <textarea 
-                      className="w-full rounded-2xl border-2 border-slate-100 p-4 text-slate-700 focus:ring-0 focus:border-emerald-400 bg-slate-50 focus:bg-white transition-colors resize-none font-medium"
+                      className="w-full rounded-lg border border-slate-200 p-3.5 text-sm text-slate-800 placeholder:text-slate-400 bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none shadow-2xs font-medium leading-relaxed"
                       rows={3}
                       placeholder="Chẩn đoán bệnh lý chính xác (chọn từ danh mục hoặc tự nhập tự do)..."
                       value={diagnosis}
@@ -780,9 +833,9 @@ const DoctorConsultation = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider">{t('consultation.treatmentNotes')}</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">{t('consultation.treatmentNotes')}</label>
                     <textarea 
-                      className="w-full rounded-2xl border-2 border-slate-100 p-4 text-slate-700 focus:ring-0 focus:border-emerald-400 bg-slate-50 focus:bg-white transition-colors resize-none"
+                      className="w-full rounded-lg border border-slate-200 p-3.5 text-sm text-slate-800 placeholder:text-slate-400 bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none shadow-2xs leading-relaxed"
                       rows={3}
                       placeholder="Ghi chú điều trị, dặn dò bệnh nhân..."
                       value={notes}
@@ -791,14 +844,14 @@ const DoctorConsultation = () => {
                   </div>
 
                   {/* Hẹn ngày tái khám */}
-                  <div className="p-5 bg-gradient-to-r from-emerald-50/70 via-teal-50/50 to-emerald-50/70 rounded-2xl border border-emerald-200/80 space-y-3.5 shadow-2xs">
+                  <div className="p-4 sm:p-5 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-3 shadow-2xs">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <FiCalendar className="text-emerald-600 w-4 h-4" />
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <FiCalendar className="text-emerald-600 w-3.5 h-3.5" />
                         Hẹn ngày tái khám
                       </label>
                       {followUpDate ? (
-                        <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200">
+                        <span className="text-xs font-semibold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-md border border-emerald-200/60">
                           ✓ {new Date(followUpDate).toLocaleDateString('vi-VN')}
                         </span>
                       ) : (
@@ -806,8 +859,8 @@ const DoctorConsultation = () => {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs text-slate-500 font-medium mr-1">Mốc nhanh:</span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-slate-400 font-medium mr-1">Mốc nhanh:</span>
                       {[
                         { label: '+3 ngày', days: 3 },
                         { label: '+7 ngày (1 tuần)', days: 7 },
@@ -822,7 +875,7 @@ const DoctorConsultation = () => {
                             d.setDate(d.getDate() + preset.days);
                             setFollowUpDate(d.toISOString().split('T')[0]);
                           }}
-                          className="text-xs px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/80 hover:text-emerald-700 font-medium text-slate-700 transition-all shadow-2xs cursor-pointer"
+                          className="text-xs px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/80 hover:text-emerald-700 font-medium text-slate-700 transition-all shadow-2xs cursor-pointer"
                         >
                           {preset.label}
                         </button>
@@ -831,7 +884,7 @@ const DoctorConsultation = () => {
                         <button
                           type="button"
                           onClick={() => setFollowUpDate('')}
-                          className="text-xs px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-medium transition-all shadow-2xs cursor-pointer ml-auto"
+                          className="text-xs px-2.5 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-medium transition-all shadow-2xs cursor-pointer ml-auto"
                         >
                           ✕ Bỏ hẹn
                         </button>
@@ -844,7 +897,7 @@ const DoctorConsultation = () => {
                         min={new Date().toISOString().split('T')[0]}
                         value={followUpDate}
                         onChange={e => setFollowUpDate(e.target.value)}
-                        className="px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-slate-800 shadow-2xs font-medium cursor-pointer"
+                        className="px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-slate-800 shadow-2xs font-medium cursor-pointer"
                       />
                       <span className="text-xs text-slate-500">
                         {followUpDate
@@ -855,7 +908,7 @@ const DoctorConsultation = () => {
                   </div>
 
                   {/* Giấy Giới Thiệu Chuyển Tuyến / Chỉ định Cận Lâm Sàng Ngoài */}
-                  <div className="p-5 bg-gradient-to-r from-teal-50/70 via-emerald-50/50 to-teal-50/70 rounded-2xl border border-teal-200/80 space-y-4 shadow-2xs">
+                  <div className="p-4 sm:p-5 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <FiShare2 className="text-teal-600 w-4 h-4" />
@@ -870,7 +923,7 @@ const DoctorConsultation = () => {
                       <button
                         type="button"
                         onClick={() => setHasReferral(!hasReferral)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                           hasReferral 
                             ? 'bg-teal-600 text-white border-teal-600' 
                             : 'bg-white text-slate-700 border-slate-300 hover:border-teal-500 hover:text-teal-700'
@@ -881,7 +934,7 @@ const DoctorConsultation = () => {
                     </div>
 
                     {hasReferral && (
-                      <div className="space-y-4 pt-2 border-t border-teal-200/60">
+                      <div className="space-y-4 pt-2 border-t border-slate-200/60">
                         {/* Chọn nhanh dịch vụ cận lâm sàng */}
                         <div className="space-y-1.5">
                           <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
@@ -897,7 +950,7 @@ const DoctorConsultation = () => {
                                   onClick={() => handleToggleReferralService(service)}
                                   className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-all cursor-pointer ${
                                     isSelected
-                                      ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+                                      ? 'bg-teal-600 text-white border-teal-600 shadow-2xs'
                                       : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400 hover:bg-teal-50/50'
                                   }`}
                                 >
@@ -912,7 +965,7 @@ const DoctorConsultation = () => {
                             placeholder="Nhập hoặc chỉnh sửa danh sách kỹ thuật chỉ định..."
                             value={referralServices}
                             onChange={(e) => setReferralServices(e.target.value)}
-                            className="w-full mt-2 px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
+                            className="w-full mt-2 px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
                           />
                         </div>
 
@@ -942,7 +995,7 @@ const DoctorConsultation = () => {
                             placeholder="Tên bệnh viện hoặc trung tâm tiếp nhận..."
                             value={referralTarget}
                             onChange={(e) => setReferralTarget(e.target.value)}
-                            className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
+                            className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
                           />
                         </div>
 
@@ -957,7 +1010,7 @@ const DoctorConsultation = () => {
                               placeholder="VD: Cần chụp X-quang/MRI để chẩn đoán phân biệt..."
                               value={referralReason}
                               onChange={(e) => setReferralReason(e.target.value)}
-                              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
+                              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
                             />
                           </div>
                           <div>
@@ -969,7 +1022,7 @@ const DoctorConsultation = () => {
                               placeholder="VD: Mang kết quả quay lại YouMed để bác sĩ kết luận..."
                               value={referralNotes}
                               onChange={(e) => setReferralNotes(e.target.value)}
-                              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
+                              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-slate-800 shadow-2xs font-medium"
                             />
                           </div>
                         </div>
@@ -978,7 +1031,7 @@ const DoctorConsultation = () => {
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <Button onClick={saveMedicalRecord} isLoading={savingRecord} className="bg-emerald-600 hover:bg-emerald-700 px-8 py-2.5 shadow-md">
+                    <Button onClick={saveMedicalRecord} isLoading={savingRecord} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-7 py-2.5 rounded-lg shadow-sm">
                       {medicalRecord ? t('consultation.updateRecord') : t('common.save')}
                     </Button>
                   </div>
@@ -993,20 +1046,20 @@ const DoctorConsultation = () => {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden"
+                className="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden"
               >
-                <div className="p-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white text-teal-500 flex items-center justify-center shadow-sm border border-slate-200">
-                      <FiActivity className="w-6 h-6" />
+                <div className="p-5 sm:p-6 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-lg bg-white text-teal-600 flex items-center justify-center shadow-2xs border border-slate-200">
+                      <FiActivity className="w-5 h-5" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-slate-900">{t('consultation.prescription')}</h2>
-                      <p className="text-sm font-medium text-slate-500">Đơn thuốc điện tử</p>
+                      <h2 className="text-lg font-bold text-slate-900">{t('consultation.prescription')}</h2>
+                      <p className="text-xs font-medium text-slate-500">Đơn thuốc điện tử</p>
                     </div>
                   </div>
                   {isInProgress && !prescription && !showPrescriptionForm && (
-                    <Button onClick={() => setShowPrescriptionForm(true)} leftIcon={<FiPlus />} className="bg-teal-600 hover:bg-teal-700 shadow-sm">Kê đơn thuốc</Button>
+                    <Button onClick={() => setShowPrescriptionForm(true)} leftIcon={<FiPlus className="w-4 h-4" />} className="bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs py-2 px-3.5 rounded-lg shadow-sm">Kê đơn thuốc</Button>
                   )}
                 </div>
 
