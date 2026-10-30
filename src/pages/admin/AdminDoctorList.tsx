@@ -4,7 +4,7 @@ import type { DoctorUpdateRequest } from '../../services/doctor.service';
 import { getActiveSpecialties } from '../../services/specialty.service';
 import type { Doctor } from '../../types/appointment';
 import type { Specialty } from '../../types/specialty';
-import { Card, Badge, ErrorMessage, EmptyState, Button, Input } from '../../components';
+import { Card, Badge, ErrorMessage, EmptyState, Button, Input, Toast, ConfirmModal } from '../../components';
 import { FiUsers, FiEdit2, FiLock, FiUnlock, FiTrash2, FiX } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,22 @@ const AdminDoctorList = () => {
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; title: string; message?: string } | null>(null);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    confirmText?: string;
+    variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
+    action: () => Promise<void>;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: async () => {},
+  });
+  const [actionLoading, setActionLoading] = useState(false);
   
   // Pagination & Filter
   const [page, setPage] = useState(0);
@@ -136,35 +152,76 @@ const AdminDoctorList = () => {
     }
   };
 
-  const handleToggleStatus = async (doctor: Doctor) => {
-    const actionName = doctor.active ? 'khóa' : 'mở khóa';
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionName} bác sĩ ${doctor.fullName}?`)) return;
-    
-    try {
-      const updateData: DoctorUpdateRequest = {
-        fullName: doctor.fullName,
-        phone: doctor.phone,
-        specialtyId: doctor.specialty?.id,
-        consultationFee: doctor.consultationFee,
-        biography: doctor.biography,
-        active: !doctor.active
-      };
-      await doctorService.updateDoctor(doctor.id, updateData);
-      fetchDoctors();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra.');
-    }
+  const handleToggleStatus = (doctor: Doctor) => {
+    const isLocking = doctor.active;
+    const actionName = isLocking ? 'tạm khóa' : 'mở khóa kích hoạt';
+    setConfirmConfig({
+      isOpen: true,
+      title: isLocking ? 'Xác nhận khóa bác sĩ' : 'Kích hoạt bác sĩ',
+      message: `Bạn có chắc chắn muốn ${actionName} tài khoản của bác sĩ ${doctor.fullName}?`,
+      confirmText: isLocking ? 'Khóa bác sĩ' : 'Kích hoạt',
+      variant: isLocking ? 'warning' : 'success',
+      action: async () => {
+        try {
+          setActionLoading(true);
+          const updateData: DoctorUpdateRequest = {
+            fullName: doctor.fullName,
+            phone: doctor.phone,
+            specialtyId: doctor.specialty?.id,
+            consultationFee: doctor.consultationFee,
+            biography: doctor.biography,
+            active: !doctor.active,
+          };
+          await doctorService.updateDoctor(doctor.id, updateData);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setToast({
+            type: 'success',
+            title: 'Cập nhật thành công',
+            message: `Đã ${actionName} bác sĩ ${doctor.fullName}.`,
+          });
+          fetchDoctors();
+        } catch (err: any) {
+          setToast({
+            type: 'error',
+            title: 'Thao tác thất bại',
+            message: err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái.',
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  const handleDelete = async (doctor: Doctor) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa bác sĩ ${doctor.fullName}? Thao tác này không thể hoàn tác.`)) return;
-    
-    try {
-      await doctorService.deleteDoctor(doctor.id);
-      fetchDoctors();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể xóa bác sĩ này. Có thể bác sĩ đang có lịch khám.');
-    }
+  const handleDelete = (doctor: Doctor) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Xác nhận xóa bác sĩ',
+      message: `Bạn có chắc chắn muốn xóa bác sĩ ${doctor.fullName}? Thao tác này không thể hoàn tác.`,
+      confirmText: 'Xác nhận xóa',
+      variant: 'danger',
+      action: async () => {
+        try {
+          setActionLoading(true);
+          await doctorService.deleteDoctor(doctor.id);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setToast({
+            type: 'success',
+            title: 'Đã xóa bác sĩ',
+            message: `Đã xóa hồ sơ bác sĩ ${doctor.fullName} khỏi hệ thống.`,
+          });
+          fetchDoctors();
+        } catch (err: any) {
+          setToast({
+            type: 'error',
+            title: 'Không thể xóa',
+            message: err.response?.data?.message || 'Không thể xóa bác sĩ này. Có thể bác sĩ đang có lịch khám hoặc hồ sơ bệnh án.',
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -463,6 +520,30 @@ const AdminDoctorList = () => {
           </div>
         </div>
       )}
+
+      {/* Floating Modern Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
+
+      {/* Unified Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmConfig.action}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        variant={confirmConfig.variant}
+        isLoading={actionLoading}
+      />
     </div>
   );
 };

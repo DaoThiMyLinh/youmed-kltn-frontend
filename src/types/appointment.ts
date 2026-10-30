@@ -24,6 +24,8 @@ export interface TimeSlot {
   endDateTime: string;
   booked: boolean;
   appointmentId: number | null;
+  isPast?: boolean;
+  isBookable?: boolean;
 }
 
 export interface CreateAppointmentRequest {

@@ -55,8 +55,14 @@ export const submitAppointmentThunk = createAsyncThunk(
     try {
       return await createAppointment(request);
     } catch (err: any) {
-      // Return specific validation errors if any
-      const message = err.response?.data?.message || 'Failed to book appointment';
+      let message = err.response?.data?.message || 'Đặt lịch hẹn không thành công';
+      if (message.includes('30 minutes in advance')) {
+        message = 'Lịch hẹn cần được đặt trước giờ khám ít nhất 30 phút. Vui lòng chọn khung giờ khác.';
+      } else if (message.includes('Slot already booked')) {
+        message = 'Khung giờ này đã có người đặt, vui lòng chọn khung giờ khác.';
+      } else if (message.includes('already have an appointment')) {
+        message = 'Bạn đã có một lịch hẹn khác vào khung giờ này.';
+      }
       return rejectWithValue(message);
     }
   }

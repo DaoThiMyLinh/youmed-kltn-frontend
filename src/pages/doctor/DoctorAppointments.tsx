@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../../components';
-import { FiClock, FiUser, FiCalendar, FiArrowRight, FiActivity, FiRefreshCw } from 'react-icons/fi';
+import { Button, Toast, ConfirmModal } from '../../components';
+import { FiClock, FiUser, FiCalendar, FiArrowRight, FiActivity, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
 import { consultationService } from '../../services/consultation.service';
 import type { Appointment } from '../../types/patient';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,25 @@ const DoctorAppointments = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // Toast & ConfirmModal states
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; title: string; message?: string } | null>(null);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    badge?: string;
+    title: string;
+    message: React.ReactNode;
+    details?: React.ReactNode;
+    confirmText?: string;
+    variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
+    action: () => Promise<void>;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: async () => {},
+  });
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAppointments = async () => {
     try {
@@ -25,18 +44,58 @@ const DoctorAppointments = () => {
     }
   };
 
+  const handleCompleteAppointment = (apt: Appointment) => {
+    setConfirmConfig({
+      isOpen: true,
+      badge: 'Hoàn tất ca khám',
+      title: 'Xác nhận hoàn tất khám',
+      message: 'Xác nhận đã hoàn thành khám cho bệnh nhân này? Ca khám sẽ được lưu vào mục Lịch sử khám bệnh.',
+      details: (
+        <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 space-y-2 text-xs">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500 font-semibold">Mã ca:</span>
+            <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">#{apt.id}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500 font-semibold">Bệnh nhân:</span>
+            <span className="font-bold text-slate-900 text-sm">{apt.patientName}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500 font-semibold">Giờ hẹn:</span>
+            <span className="font-medium text-slate-800">{new Date(apt.appointmentTime).toLocaleDateString('vi-VN')} {new Date(apt.appointmentTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        </div>
+      ),
+      confirmText: 'Hoàn tất khám',
+      variant: 'success',
+      action: async () => {
+        try {
+          setActionLoading(true);
+          await consultationService.updateAppointmentStatus(apt.id, 'COMPLETED');
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setToast({
+            type: 'success',
+            title: 'Khám thành công',
+            message: `Ca khám của bệnh nhân ${apt.patientName} đã hoàn thành và chuyển sang mục Lịch sử.`,
+          });
+          fetchAppointments();
+        } catch (err: any) {
+          setToast({
+            type: 'error',
+            title: 'Lỗi cập nhật',
+            message: err.response?.data?.message || 'Có lỗi xảy ra khi hoàn tất ca khám.',
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
+  };
+
   useEffect(() => {
     fetchAppointments();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'CHECKED_IN': return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'IN_PROGRESS': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      default: return 'bg-slate-50 text-slate-700 border-slate-200';
-    }
-  };
 
   if (loading && appointments.length === 0) {
     return (
@@ -100,74 +159,158 @@ const DoctorAppointments = () => {
           </p>
         </motion.div>
       ) : (
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 gap-6">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 gap-5">
           {appointments.map((apt) => (
-            <motion.div key={apt.id} variants={itemVariants} className="bg-white rounded-3xl shadow-sm border border-slate-100 hover:shadow-lg transition-all group overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity -z-0"></div>
+            <motion.div 
+              key={apt.id} 
+              variants={itemVariants} 
+              className="bg-white rounded-3xl shadow-sm border border-slate-200/70 hover:border-emerald-300 hover:shadow-lg transition-all group overflow-hidden relative"
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-emerald-50/60 to-transparent rounded-bl-full pointer-events-none -z-0"></div>
+
+              {/* Status Badge at Top Right */}
+              <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-10">
+                {apt.status === 'IN_PROGRESS' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    Đang khám
+                  </span>
+                ) : apt.status === 'CHECKED_IN' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    Đã Check-in
+                  </span>
+                ) : apt.status === 'CONFIRMED' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-sky-50 text-sky-700 border border-sky-200 shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
+                    Đã xác nhận
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                    Chờ duyệt
+                  </span>
+                )}
+              </div>
               
-              <div className="p-6 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="p-5 sm:p-6 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
                 
-                {/* Left: Time */}
-                <div className="flex items-center gap-5 md:w-1/4">
-                  <div className="flex flex-col items-center justify-center p-4 bg-emerald-50 rounded-2xl border border-emerald-100 min-w-[90px] shadow-inner group-hover:border-emerald-200 transition-colors">
-                    <span className="text-sm font-bold text-emerald-500 uppercase tracking-wider mb-1">
-                      {new Date(apt.appointmentTime).toLocaleString('default', { month: 'short' })}
+                {/* Left: Date & Time */}
+                <div className="flex md:flex-col items-center justify-start md:justify-center gap-3.5 md:w-28 shrink-0 pr-4 md:border-r border-slate-100">
+                  <div className="flex flex-col items-center justify-center w-18 h-18 rounded-2xl bg-gradient-to-b from-emerald-50 to-teal-50 border border-emerald-100/90 shadow-2xs">
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                      Tháng {new Date(apt.appointmentTime).getMonth() + 1}
                     </span>
-                    <span className="text-4xl font-black text-slate-900">
+                    <span className="text-2xl font-black text-slate-900 leading-none mt-1">
                       {new Date(apt.appointmentTime).getDate()}
                     </span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-slate-700 font-bold mb-1">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <FiClock className="w-4 h-4 text-slate-500" />
-                      </div>
-                      {new Date(apt.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/80 text-slate-700 text-xs font-bold whitespace-nowrap border border-slate-200/50">
+                    <FiClock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span>{new Date(apt.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                   </div>
                 </div>
 
                 {/* Middle: Patient Info */}
-                <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 flex items-start gap-5">
-                  <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 flex-shrink-0 border-2 border-white shadow-sm group-hover:scale-110 transition-transform">
-                    <FiUser className="w-6 h-6" />
+                <div className="flex-1 flex items-start gap-3.5 min-w-0 pr-2">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 border border-emerald-200/60 flex items-center justify-center font-black text-base shadow-2xs shrink-0">
+                    {apt.patientName ? apt.patientName.charAt(0).toUpperCase() : <FiUser className="w-5 h-5" />}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{apt.patientName}</h3>
-                    <div className="inline-flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full text-sm font-semibold text-slate-600 mb-4 border border-slate-100">
-                      <FiActivity className="w-4 h-4 text-slate-400" /> {apt.specialization}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-snug truncate">
+                        {apt.patientName}
+                      </h3>
+                      {apt.specialization && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0">
+                          <FiActivity className="w-3 h-3 text-emerald-500" />
+                          {apt.specialization}
+                        </span>
+                      )}
                     </div>
-                    <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-                      <p className="text-slate-600 font-medium leading-relaxed">
-                        <span className="font-bold text-slate-800 block mb-1 uppercase tracking-wider text-xs">{t('appointment.reason')}:</span> 
-                        {apt.reason}
+                    <div className="bg-slate-50/80 rounded-xl px-3.5 py-2.5 border border-slate-200/60 text-xs mt-2.5">
+                      <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px] block mb-0.5">
+                        Lý do khám:
+                      </span>
+                      <p className="text-slate-700 font-medium leading-relaxed line-clamp-2">
+                        {apt.reason || 'Khám bệnh theo lịch hẹn'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Right: Status & Action */}
-                <div className="flex flex-col items-start md:items-end border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 gap-4 md:w-1/4 justify-center">
-                  <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(apt.status)}`}>
-                    {t(`status.${apt.status}`)}
-                  </div>
-                  <Button 
-                    className={`w-full md:w-auto text-white rounded-xl shadow-md transition-colors font-medium px-6 py-2.5 ${
-                      apt.status === 'CHECKED_IN' || apt.status === 'IN_PROGRESS'
-                        ? 'bg-emerald-600 hover:bg-emerald-700'
-                        : 'bg-slate-900 hover:bg-slate-800'
-                    }`}
-                    rightIcon={<FiArrowRight />} 
-                    onClick={() => navigate(`/doctor/consultation/${apt.id}`, { state: { appointment: apt } })}
-                  >
-                    {apt.status === 'CHECKED_IN' ? 'Tiến hành Khám' : apt.status === 'IN_PROGRESS' ? 'Tiếp tục Khám' : 'Xem phòng khám'}
-                  </Button>
+                {/* Right: Actions */}
+                <div className="pt-3 md:pt-0 border-t md:border-t-0 flex items-center md:items-end justify-end shrink-0 md:min-w-[200px]">
+                  {apt.status === 'IN_PROGRESS' ? (
+                    <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
+                      {/* Secondary: Hoàn tất khám */}
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteAppointment(apt)}
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-300 hover:border-emerald-400 shadow-2xs hover:shadow-xs transition-all duration-200 whitespace-nowrap cursor-pointer active:scale-95"
+                      >
+                        <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Hoàn tất khám</span>
+                      </button>
+
+                      {/* Primary: Tiếp tục Khám */}
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/doctor/consultation/${apt.id}`, { state: { appointment: apt } })}
+                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-200 whitespace-nowrap cursor-pointer active:scale-95"
+                      >
+                        <span>Tiếp tục Khám</span>
+                        <FiArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : apt.status === 'CHECKED_IN' ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/doctor/consultation/${apt.id}`, { state: { appointment: apt } })}
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-200 whitespace-nowrap cursor-pointer active:scale-95 w-full md:w-auto"
+                    >
+                      <span>Tiến hành Khám</span>
+                      <FiArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200/70 font-medium">
+                      <FiClock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <span>Chờ Check-in</span>
+                    </div>
+                  )}
                 </div>
 
               </div>
             </motion.div>
           ))}
         </motion.div>
+      )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmConfig.action}
+        badge={confirmConfig.badge}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        variant={confirmConfig.variant}
+        isLoading={actionLoading}
+      >
+        {confirmConfig.details}
+      </ConfirmModal>
+
+      {/* Modern Floating Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
       )}
     </div>
   );

@@ -110,19 +110,86 @@ export const DEFAULT_DIAGNOSES: Diagnosis[] = [
 ];
 
 export const DEFAULT_MEDICINES: Medicine[] = [
-  { id: 1, name: 'Paracetamol 500mg', unit: 'Viên', description: 'Giảm đau, hạ sốt' },
-  { id: 2, name: 'Augmentin 1g', unit: 'Viên', description: 'Kháng sinh nhiễm khuẩn' },
-  { id: 3, name: 'Amoxicillin 500mg', unit: 'Viên', description: 'Kháng sinh' },
-  { id: 4, name: 'Panadol Extra', unit: 'Viên', description: 'Giảm đau nhanh' },
-  { id: 5, name: 'Ibuprofen 400mg', unit: 'Viên', description: 'Kháng viêm không steroid' },
-  { id: 6, name: 'Omeprazole 20mg', unit: 'Viên', description: 'Giảm tiết axit dạ dày' },
-  { id: 7, name: 'Phosphalugel (Chữ P)', unit: 'Gói', description: 'Trung hòa axit dạ dày' },
-  { id: 8, name: 'Amlodipine 5mg', unit: 'Viên', description: 'Hạ huyết áp' },
-  { id: 9, name: 'Losartan 50mg', unit: 'Viên', description: 'Hạ huyết áp' },
-  { id: 10, name: 'Vitamin C 1000mg', unit: 'Viên sủi', description: 'Tăng đề kháng' },
-  { id: 11, name: 'Decolgen', unit: 'Viên', description: 'Trị cảm cúm, nghẹt mũi' },
-  { id: 12, name: 'Prospan', unit: 'Chai', description: 'Siro trị ho' },
-  { id: 13, name: 'Loratadine 10mg', unit: 'Viên', description: 'Chống dị ứng' },
-  { id: 14, name: 'Berberin 100mg', unit: 'Viên', description: 'Trị tiêu chảy, nhiễm khuẩn ruột' },
-  { id: 15, name: 'Gaviscon', unit: 'Gói', description: 'Trị trào ngược dạ dày' }
+  // Giảm đau, hạ sốt, kháng viêm
+  { id: 1, name: 'Paracetamol 500mg', unit: 'Viên', description: 'Giảm đau, hạ sốt thông dụng' },
+  { id: 2, name: 'Efferalgan 500mg', unit: 'Viên sủi', description: 'Viên sủi giảm đau hạ sốt nhanh' },
+  { id: 3, name: 'Hapacol 650mg', unit: 'Viên', description: 'Hạ sốt giảm đau liều cao cho người lớn' },
+  { id: 4, name: 'Panadol Extra', unit: 'Viên', description: 'Giảm đau nhanh, có chứa Caffeine' },
+  { id: 5, name: 'Ibuprofen 400mg', unit: 'Viên', description: 'Kháng viêm không steroid (NSAID)' },
+  { id: 6, name: 'Meloxicam 7.5mg', unit: 'Viên', description: 'Kháng viêm giảm đau khớp chuyên sâu' },
+  { id: 7, name: 'Celecoxib 200mg', unit: 'Viên', description: 'Kháng viêm chọn lọc COX-2 êm dịu dạ dày' },
+  { id: 8, name: 'Aspirin 81mg', unit: 'Viên', description: 'Ngừa huyết khối tim mạch và giảm đau' },
+
+  // Kháng sinh & Kháng virus
+  { id: 9, name: 'Amoxicillin 500mg', unit: 'Viên', description: 'Kháng sinh phổ rộng đường hô hấp' },
+  { id: 10, name: 'Augmentin 1g', unit: 'Viên', description: 'Kháng sinh Amoxicillin + Clavulanic trị nhiễm khuẩn nặng' },
+  { id: 11, name: 'Azithromycin 250mg', unit: 'Viên', description: 'Kháng sinh nhóm macrolid trị hô hấp, da' },
+  { id: 12, name: 'Cefuroxime 500mg (Zinnat)', unit: 'Viên', description: 'Kháng sinh Cephalosporin thế hệ 2' },
+  { id: 13, name: 'Ciprofloxacin 500mg', unit: 'Viên', description: 'Kháng sinh Quinolone nhiễm khuẩn tiết niệu, tiêu hóa' },
+  { id: 14, name: 'Clarithromycin 500mg', unit: 'Viên', description: 'Kháng sinh phác đồ diệt vi khuẩn HP dạ dày' },
+  { id: 15, name: 'Metronidazole 250mg (Klion)', unit: 'Viên', description: 'Kháng sinh trị vi khuẩn kỵ khí và amip ruột' },
+  { id: 16, name: 'Doxycycline 100mg', unit: 'Viên', description: 'Kháng sinh Tetracycline trị mụn trứng cá' },
+  { id: 17, name: 'Acyclovir 800mg', unit: 'Viên', description: 'Kháng virus điều trị Zona thần kinh, Thủy đậu' },
+  { id: 18, name: 'Tamiflu 75mg (Oseltamivir)', unit: 'Viên', description: 'Kháng virus đặc hiệu điều trị Cúm A, Cúm B' },
+
+  // Hô hấp, Ho, Cảm cúm
+  { id: 19, name: 'Decolgen', unit: 'Viên', description: 'Trị cảm cúm, nghẹt mũi, sổ mũi' },
+  { id: 20, name: 'Tiffy Dey', unit: 'Viên', description: 'Trị cảm sốt, nhức đầu, sổ mũi' },
+  { id: 21, name: 'Prospan', unit: 'Chai', description: 'Siro trị ho thảo dược cao lá thường xuân' },
+  { id: 22, name: 'Acemuc 200mg', unit: 'Gói', description: 'Tiêu chất nhầy, long đờm đường hô hấp' },
+  { id: 23, name: 'Singulair 10mg (Montelukast)', unit: 'Viên', description: 'Kiểm soát và phòng ngừa hen suyễn' },
+  { id: 24, name: 'Xịt mũi Otrivin 0.1%', unit: 'Lọ', description: 'Co mạch giảm sung huyết, nghẹt mũi nhanh' },
+
+  // Tiêu hóa, Dạ dày, Ruột
+  { id: 25, name: 'Omeprazole 20mg', unit: 'Viên', description: 'Ức chế bơm proton (PPI) giảm tiết axit dạ dày' },
+  { id: 26, name: 'Nexium 40mg (Esomeprazole)', unit: 'Viên', description: 'Điều trị loét dạ dày và trào ngược GERD' },
+  { id: 27, name: 'Phosphalugel (Chữ P)', unit: 'Gói', description: 'Gel nhôm phosphate trung hòa axit dạ dày' },
+  { id: 28, name: 'Gaviscon', unit: 'Gói', description: 'Tạo màng ngăn trào ngược dạ dày thực quản' },
+  { id: 29, name: 'Smecta', unit: 'Gói', description: 'Bảo vệ niêm mạc tiêu hóa, cầm tiêu chảy' },
+  { id: 30, name: 'Men tiêu hóa Enterogermina', unit: 'Ống', description: 'Bào tử lợi khuẩn Bacillus clausii phục hồi đường ruột' },
+  { id: 31, name: 'Berberin 100mg', unit: 'Viên', description: 'Trị tiêu chảy, lỵ nhiễm khuẩn ruột' },
+  { id: 32, name: 'Oresol', unit: 'Gói', description: 'Bù nước và điện giải khi sốt cao, tiêu chảy' },
+  { id: 33, name: 'Loperamide 2mg', unit: 'Viên', description: 'Giảm nhu động ruột cầm tiêu chảy cấp' },
+  { id: 34, name: 'Spasmaverine 40mg', unit: 'Viên', description: 'Chống co thắt cơ trơn giảm đau bụng' },
+  { id: 35, name: 'Motilium-M 10mg (Domperidone)', unit: 'Viên', description: 'Chống nôn, đầy hơi, khó tiêu' },
+
+  // Tim mạch, Huyết áp, Mỡ máu
+  { id: 36, name: 'Amlodipine 5mg', unit: 'Viên', description: 'Thuốc chẹn kênh canxi hạ huyết áp' },
+  { id: 37, name: 'Losartan 50mg', unit: 'Viên', description: 'Ức chế thụ thể Angiotensin II trị cao huyết áp' },
+  { id: 38, name: 'Coversyl 5mg (Perindopril)', unit: 'Viên', description: 'Ức chế men chuyển trị tăng huyết áp, suy tim' },
+  { id: 39, name: 'Concor 2.5mg (Bisoprolol)', unit: 'Viên', description: 'Chẹn beta giao cảm ổn định nhịp tim, hạ áp' },
+  { id: 40, name: 'Rosuvastatin 10mg (Crestor)', unit: 'Viên', description: 'Hạ mỡ máu, giảm cholesterol' },
+  { id: 41, name: 'Atorvastatin 20mg (Lipitor)', unit: 'Viên', description: 'Hạ triglycerid và LDL phòng ngừa đột quỵ' },
+  { id: 42, name: 'Plavix 75mg (Clopidogrel)', unit: 'Viên', description: 'Chống kết tập tiểu cầu ngừa nhồi máu cơ tim' },
+
+  // Tiểu đường
+  { id: 43, name: 'Metformin 500mg (Glucophage)', unit: 'Viên', description: 'Kiểm soát đường huyết tiểu đường type 2' },
+  { id: 44, name: 'Diamicron MR 60mg (Gliclazide)', unit: 'Viên', description: 'Kích thích tụy tiết insulin phóng thích kéo dài' },
+
+  // Dị ứng, Kháng histamin
+  { id: 45, name: 'Loratadine 10mg', unit: 'Viên', description: 'Chống dị ứng không gây buồn ngủ' },
+  { id: 46, name: 'Cetirizine 10mg', unit: 'Viên', description: 'Kháng histamin trị mẩn ngứa, mề đay' },
+  { id: 47, name: 'Telfast HD 180mg (Fexofenadine)', unit: 'Viên', description: 'Trị viêm mũi dị ứng và mày đay mạn tính' },
+  { id: 48, name: 'Medrol 16mg (Methylprednisolone)', unit: 'Viên', description: 'Kháng viêm corticoid mạnh trị dị ứng nặng, khớp' },
+
+  // Thần kinh & Tuần hoàn não
+  { id: 49, name: 'Tanakan 40mg (Ginkgo Biloba)', unit: 'Viên', description: 'Tăng tuần hoàn não, giảm chóng mặt hoa mắt' },
+  { id: 50, name: 'Gabapentin 300mg', unit: 'Viên', description: 'Trị đau dây thần kinh tọa, đau sau Zona' },
+  { id: 51, name: 'Magne B6', unit: 'Viên', description: 'Giảm lo âu, căng thẳng, rối loạn giấc ngủ' },
+
+  // Vitamin, Khoáng chất & Bồi bổ
+  { id: 52, name: 'Vitamin C 1000mg', unit: 'Viên sủi', description: 'Bổ sung vitamin C, tăng cường miễn dịch' },
+  { id: 53, name: 'Vitamin 3B (B1, B6, B12)', unit: 'Viên', description: 'Phục hồi dẫn truyền thần kinh, chống mỏi' },
+  { id: 54, name: 'Canxi D3', unit: 'Viên', description: 'Bổ sung canxi cho xương khớp chắc khỏe' },
+  { id: 55, name: 'Sắt Folic (Ferrovit)', unit: 'Viên', description: 'Bổ sung sắt hữu cơ tạo máu' },
+  { id: 56, name: 'Kẽm Gluconate 50mg', unit: 'Viên', description: 'Tăng cường đề kháng, phục hồi niêm mạc ruột' },
+
+  // Thuốc bôi ngoài da & Sát trùng
+  { id: 57, name: 'Gentrisone', unit: 'Tuýp', description: 'Kem bôi trị nấm da, viêm da dị ứng, chàm' },
+  { id: 58, name: 'Fucidin', unit: 'Tuýp', description: 'Kem kháng sinh ngoài da trị chốc lở, nhiễm trùng' },
+  { id: 59, name: 'Bepanthen Balm', unit: 'Tuýp', description: 'Kem bôi làm dịu da tổn thương, nứt nẻ' },
+  { id: 60, name: 'Acyclovir bôi 5g', unit: 'Tuýp', description: 'Kem bôi kháng virus mụn rộp Herpes, Zona' },
+  { id: 61, name: 'Povidine 10%', unit: 'Chai', description: 'Dung dịch sát khuẩn vết thương hở' },
+  { id: 62, name: 'Natri Clorid 0.9%', unit: 'Chai', description: 'Nước muối sinh lý rửa vết thương, nhỏ mắt mũi' },
+  { id: 63, name: 'V.Rohto New', unit: 'Chai', description: 'Thuốc nhỏ mắt kháng viêm, chống mỏi mắt' }
 ];

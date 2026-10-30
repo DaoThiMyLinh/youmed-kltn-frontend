@@ -264,7 +264,7 @@ const DoctorList = () => {
                           {doctor.averageRating && doctor.averageRating > 0 ? doctor.averageRating.toFixed(1) : 'Chưa có'}
                         </span>
                         <span className="text-slate-400 text-xs font-medium ml-0.5">
-                          ({doctor.totalReviews || 0})
+                          ({doctor.totalReviews ? `${doctor.totalReviews} đánh giá` : '0 đánh giá'})
                         </span>
                       </div>
                       

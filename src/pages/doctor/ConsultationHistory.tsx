@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components';
-import { FiFileText, FiSearch, FiClock, FiCalendar, FiUser, FiActivity } from 'react-icons/fi';
+import { FiFileText, FiSearch, FiClock, FiCalendar, FiUser, FiActivity, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { consultationService } from '../../services/consultation.service';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -33,20 +33,23 @@ const ConsultationHistory = () => {
         consultationService.getDoctorAppointments(0, 50, 'appointmentTime', 'DESC')
       ]);
 
-      const myAppointmentIds = appointmentsRes.content.map(a => a.id);
-      const myMedicalRecords = medicalRecordsRes.content.filter(mr => myAppointmentIds.includes(mr.appointmentId));
+      // Chỉ lấy các ca khám ĐÃ THỰC SỰ HOÀN THÀNH (status === 'COMPLETED')
+      const completedAppointments = appointmentsRes.content.filter(apt => apt.status === 'COMPLETED');
 
-      const completedRecords: HistoryItem[] = myMedicalRecords.map(mr => ({
-        id: mr.id,
-        type: 'COMPLETED',
-        date: mr.createdAt || new Date().toISOString(),
-        patientName: mr.patientName || `PT-${mr.patientId}`,
-        patientId: mr.patientId,
-        diagnosisOrReason: `${t('appointment.diagnosis')}: ${mr.diagnosis}`,
-        appointmentId: mr.appointmentId,
-        fullAppointment: appointmentsRes.content.find(a => a.id === mr.appointmentId),
-        followUpDate: mr.followUpDate
-      }));
+      const completedRecords: HistoryItem[] = completedAppointments.map(apt => {
+        const mr = medicalRecordsRes.content.find(m => m.appointmentId === apt.id);
+        return {
+          id: mr ? mr.id : `apt-${apt.id}`,
+          type: 'COMPLETED',
+          date: mr?.createdAt || apt.appointmentTime,
+          patientName: apt.patientName || (mr?.patientName || `PT-${apt.patientId}`),
+          patientId: apt.patientId,
+          diagnosisOrReason: mr?.diagnosis ? `${t('appointment.diagnosis')}: ${mr.diagnosis}` : `${t('appointment.reason')}: ${apt.reason || 'Đã hoàn tất khám'}`,
+          appointmentId: apt.id,
+          fullAppointment: apt,
+          followUpDate: mr?.followUpDate
+        };
+      });
 
       const cancelledAppointments: HistoryItem[] = appointmentsRes.content
         .filter(apt => apt.status === 'CANCELLED')
@@ -56,7 +59,7 @@ const ConsultationHistory = () => {
           date: apt.appointmentTime,
           patientName: apt.patientName || `PT-${apt.patientId}`,
           patientId: apt.patientId,
-          diagnosisOrReason: `${t('appointment.reason')}: ${apt.reason}`,
+          diagnosisOrReason: `${t('appointment.reason')}: ${apt.reason || 'Lịch hẹn đã hủy'}`,
           appointmentId: apt.id,
           fullAppointment: apt
         }));
@@ -116,24 +119,38 @@ const ConsultationHistory = () => {
            </div>
         </div>
         
-        <div className="relative z-10 flex bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto overflow-hidden shadow-inner border border-slate-200/50">
+        <div className="relative z-10 flex bg-slate-100/90 p-1.5 rounded-2xl w-full sm:w-auto shadow-inner border border-slate-200/60 shrink-0 gap-1.5">
           <button 
             onClick={() => setFilter('ALL')} 
-            className={`flex-1 md:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${filter === 'ALL' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50 scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 scale-95'}`}
+            className={`flex-1 sm:flex-initial whitespace-nowrap px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+              filter === 'ALL' 
+                ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/80 scale-100' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
           >
             Tất cả
           </button>
           <button 
             onClick={() => setFilter('COMPLETED')} 
-            className={`flex-1 md:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${filter === 'COMPLETED' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50 scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 scale-95'}`}
+            className={`flex-1 sm:flex-initial whitespace-nowrap px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+              filter === 'COMPLETED' 
+                ? 'bg-white text-emerald-700 shadow-sm border border-emerald-200/80 scale-100' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
           >
-            Hoàn thành
+            <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Hoàn thành</span>
           </button>
           <button 
             onClick={() => setFilter('CANCELLED')} 
-            className={`flex-1 md:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${filter === 'CANCELLED' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50 scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 scale-95'}`}
+            className={`flex-1 sm:flex-initial whitespace-nowrap px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+              filter === 'CANCELLED' 
+                ? 'bg-white text-rose-600 shadow-sm border border-rose-200/80 scale-100' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
           >
-            Đã hủy
+            <FiXCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>Đã hủy</span>
           </button>
         </div>
       </motion.div>

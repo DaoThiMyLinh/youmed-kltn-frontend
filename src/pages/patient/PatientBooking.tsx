@@ -18,6 +18,23 @@ const getTodayDateString = () => {
   return `${y}-${m}-${d}`;
 };
 
+const getSlotStatus = (slot: TimeSlot) => {
+  if (slot.booked) {
+    return { disabled: true, label: 'Đã kín', type: 'booked' };
+  }
+  const slotTime = new Date(slot.startDateTime).getTime();
+  const now = Date.now();
+  const minBookingTime = now + 30 * 60 * 1000; // Cần đặt trước tối thiểu 30 phút
+
+  if (slotTime <= now) {
+    return { disabled: true, label: 'Đã qua giờ', type: 'past' };
+  }
+  if (slotTime < minBookingTime) {
+    return { disabled: true, label: 'Quá hạn (<30p)', type: 'too_close' };
+  }
+  return { disabled: false, label: null, type: 'available' };
+};
+
 const PatientBooking = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
@@ -95,11 +112,26 @@ const PatientBooking = () => {
     }
   }, [success, navigate, dispatch, rescheduleId]);
 
-  const handleNextStep = () => setStep(prev => prev + 1);
+  const handleNextStep = () => {
+    if (step === 3 && selectedTimeSlot) {
+      const status = getSlotStatus(selectedTimeSlot);
+      if (status.disabled) {
+        setSelectedTimeSlot(null);
+        return;
+      }
+    }
+    setStep(prev => prev + 1);
+  };
   const handlePrevStep = () => setStep(prev => prev - 1);
 
   const handleSubmit = () => {
     if (!selectedTimeSlot || !reason) return;
+    const status = getSlotStatus(selectedTimeSlot);
+    if (status.disabled) {
+      setStep(3);
+      setSelectedTimeSlot(null);
+      return;
+    }
     dispatch(submitAppointmentThunk({
       timeSlotId: selectedTimeSlot.id,
       reason
@@ -242,10 +274,17 @@ const PatientBooking = () => {
 
             {selectedDate && (
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center"><FiClock /></div>
-                  {t('booking.selectTimeSlot')}
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center"><FiClock /></div>
+                    {t('booking.selectTimeSlot')}
+                  </h3>
+                  <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit">
+                    <FiClock className="w-3.5 h-3.5 text-emerald-600" />
+                    Lưu ý: Đặt trước giờ khám tối thiểu 30 phút
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {loading ? (
                     <div className="col-span-2 sm:col-span-3 md:col-span-4 flex flex-col items-center justify-center py-10 gap-2">
@@ -260,25 +299,46 @@ const PatientBooking = () => {
                     timeSlots.map((slot: TimeSlot) => {
                       const time = new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
                       const isSelected = selectedTimeSlot?.id === slot.id;
+                      const status = getSlotStatus(slot);
+
                       return (
                         <button
                           key={slot.id}
-                          disabled={slot.booked}
+                          type="button"
+                          disabled={status.disabled}
                           onClick={() => setSelectedTimeSlot(slot)}
-                          className={`py-3 px-4 rounded-xl font-medium text-center transition-all ${
+                          className={`py-3 px-3 rounded-xl font-medium text-center transition-all ${
                             isSelected 
                               ? 'bg-slate-900 text-white shadow-md transform scale-[1.02]' 
-                              : slot.booked
-                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
+                              : status.disabled
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60 border border-slate-200/60'
                               : 'bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-sm'
                           }`}
                         >
-                          {time} {slot.booked && <span className="block text-xs mt-0.5 font-normal">Đã kín</span>}
+                          <span className="block font-semibold text-sm">{time}</span>
+                          {status.label && (
+                            <span className={`block text-[11px] mt-0.5 font-normal ${
+                              status.type === 'booked' 
+                                ? 'text-rose-500' 
+                                : status.type === 'too_close' 
+                                ? 'text-amber-600 font-medium' 
+                                : 'text-slate-400'
+                            }`}>
+                              {status.label}
+                            </span>
+                          )}
                         </button>
                       );
                     })
                   )}
                 </div>
+
+                {timeSlots.length > 0 && timeSlots.every((slot: TimeSlot) => getSlotStatus(slot).disabled) && (
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex items-center gap-3">
+                    <FiClock className="w-5 h-5 flex-shrink-0 text-amber-600" />
+                    <span>Tất cả các khung giờ khám trong ngày hôm nay đã kết thúc hoặc đã kín chỗ. Quý khách vui lòng chọn ngày khám tiếp theo.</span>
+                  </div>
+                )}
               </div>
             )}
 

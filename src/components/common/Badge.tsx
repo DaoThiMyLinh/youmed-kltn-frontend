@@ -17,7 +17,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', className, ..
 
   return (
     <span
-      className={clsx('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', variants[variant], className)}
+      className={clsx('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap', variants[variant], className)}
       {...props}
     />
   );

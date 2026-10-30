@@ -8,6 +8,7 @@ import { selectUserRole } from '../../store/features/auth/authSlice';
 import { useTranslation } from 'react-i18next';
 import { FiArrowLeft, FiLock, FiSave, FiEdit3, FiCheckCircle } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { normalizeGender } from '../../utils/formatters';
 
 const PatientProfileEdit = () => {
   const dispatch = useDispatch<any>();
@@ -50,7 +51,7 @@ const PatientProfileEdit = () => {
         fullName: profile.fullName || '',
         phone: profile.phone || '',
         address: profile.address || '',
-        gender: profile.gender || '',
+        gender: normalizeGender(profile.gender),
         dateOfBirth: profile.dateOfBirth || '',
       });
     }
