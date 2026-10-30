@@ -1,6 +1,7 @@
 import axiosClient from '../api/axiosClient';
 import type { Doctor } from '../types/appointment';
 import type { PageResponse } from '../types/patient';
+import type { Role } from '../types/user';
 
 export interface DoctorCreateRequest {
   fullName: string;
@@ -9,6 +10,7 @@ export interface DoctorCreateRequest {
   specialtyId?: number;
   consultationFee: number;
   biography: string;
+  role?: Role;
 }
 
 export interface DoctorUpdateRequest {

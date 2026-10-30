@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Input, Toast, PrintPrescriptionModal, PrintReferralModal } from '../../components';
-import { FiUser, FiClock, FiFileText, FiCheck, FiArrowLeft, FiPlus, FiTrash2, FiActivity, FiEdit3, FiTag, FiFilter, FiCalendar, FiPrinter, FiShare2 } from 'react-icons/fi';
+import { FiUser, FiClock, FiFileText, FiCheck, FiArrowLeft, FiPlus, FiTrash2, FiActivity, FiEdit3, FiTag, FiFilter, FiAlertCircle, FiCalendar, FiPrinter, FiShare2 } from 'react-icons/fi';
 import { consultationService } from '../../services/consultation.service';
 import { masterDataService } from '../../services/masterData.service';
 import { DEFAULT_SYMPTOMS, DEFAULT_DIAGNOSES, DEFAULT_MEDICINES } from '../../constants/masterData';
@@ -81,10 +81,25 @@ const DoctorConsultation = () => {
     try {
       setLoading(true);
       
-      if (stateAppointment) {
-        setAppointment(stateAppointment);
+      let apt = stateAppointment;
+      if (!apt) {
+        try {
+          apt = await consultationService.getAppointmentById(Number(id));
+        } catch (err) {
+          // Fallback: search in doctor's appointments
+          try {
+            const docApts = await consultationService.getDoctorAppointments(0, 100);
+            apt = docApts.content.find(a => a.id === Number(id));
+          } catch (e) {
+            console.error("Could not fetch fallback appointments", e);
+          }
+        }
+      }
+
+      if (apt) {
+        setAppointment(apt);
       } else {
-        throw new Error('Không thể tải chi tiết do mất dữ liệu điều hướng (thường xảy ra khi F5 hoặc mở tab mới). Backend hiện không hỗ trợ API lấy chi tiết.');
+        throw new Error('Không tìm thấy thông tin cuộc hẹn.');
       }
 
       try {
@@ -117,9 +132,7 @@ const DoctorConsultation = () => {
       }
     } catch (error: any) {
       console.error(error);
-      if (error.message.includes('Không thể tải chi tiết')) {
-        setToast({ message: error.message, type: 'error' });
-      }
+      setToast({ message: error.message || 'Lỗi khi tải thông tin khám bệnh', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -371,16 +384,33 @@ const DoctorConsultation = () => {
           </div>
           
           {appointment.status === 'PENDING' || appointment.status === 'CONFIRMED' ? (
-            <Button onClick={() => handleStatusChange('CHECKED_IN')} isLoading={isStatusUpdating} className="bg-amber-500 hover:bg-amber-600">Check-In Bệnh nhân</Button>
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold shadow-sm">
+              <FiClock className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Chờ Lễ tân tiếp nhận & Check-in</span>
+            </div>
           ) : appointment.status === 'CHECKED_IN' ? (
-            <Button onClick={() => handleStatusChange('IN_PROGRESS')} isLoading={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700">Bắt đầu Khám</Button>
+            <Button onClick={() => handleStatusChange('IN_PROGRESS')} isLoading={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700 shadow-md">
+              Bắt đầu Khám
+            </Button>
           ) : appointment.status === 'IN_PROGRESS' ? (
-            <Button onClick={() => handleStatusChange('COMPLETED')} leftIcon={<FiCheck />} isLoading={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700">
+            <Button onClick={() => handleStatusChange('COMPLETED')} leftIcon={<FiCheck />} isLoading={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700 shadow-md">
               {t('consultation.completeConsultation')}
             </Button>
           ) : null}
         </div>
       </motion.div>
+
+      {(appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') && (
+        <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-sm">
+          <FiAlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-semibold text-slate-900">Bệnh nhân chưa Check-in tại quầy Lễ tân</p>
+            <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">
+              Theo quy trình tiếp nhận của bệnh viện, nhân viên <strong>Lễ tân (Receptionist)</strong> sẽ đón tiếp và thực hiện Check-in cho bệnh nhân. Sau khi Lễ tân hoàn tất Check-in, Bác sĩ mới có thể bấm <strong>"Bắt đầu Khám"</strong>.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Patient Info (Sticky) */}

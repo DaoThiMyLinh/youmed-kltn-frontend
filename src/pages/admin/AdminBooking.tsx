@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Toast, ErrorMessage } from '../../components';
@@ -10,11 +10,21 @@ import { useTranslation } from 'react-i18next';
 import { cancelAppointmentThunk } from '../../store/features/patient/patientSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const getTodayDateString = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 const AdminBooking = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const rescheduleId = searchParams.get('reschedule');
+  const targetDoctorId = searchParams.get('doctorId');
+  const targetSpecialtyId = searchParams.get('specialtyId');
   const { t } = useTranslation();
 
   const doctors = useSelector(selectDoctors);
@@ -32,6 +42,8 @@ const AdminBooking = () => {
   const [reason, setReason] = useState<string>('');
   const [urlDoctorError, setUrlDoctorError] = useState<string | null>(null);
 
+  const hasInitializedFromUrl = useRef(false);
+
   useEffect(() => {
     dispatch(fetchDoctorsThunk());
     dispatch(fetchSpecialtiesThunk());
@@ -39,20 +51,36 @@ const AdminBooking = () => {
 
   // Handle doctorId from URL
   useEffect(() => {
-    const targetDoctorId = searchParams.get('doctorId');
-    if (targetDoctorId && doctors.length > 0 && !selectedDoctor && step === 1) {
-      const doctor = doctors.find(d => d.id.toString() === targetDoctorId);
-      if (doctor) {
-        setSelectedDoctor(doctor);
-        if (doctor.specialty) {
-          setSelectedSpecialty(doctor.specialty);
+    if (hasInitializedFromUrl.current) return;
+
+    if (targetDoctorId) {
+      if (doctors.length > 0) {
+        hasInitializedFromUrl.current = true;
+        const doctor = doctors.find(d => d.id.toString() === targetDoctorId);
+        if (doctor) {
+          setSelectedDoctor(doctor);
+          if (doctor.specialty) {
+            setSelectedSpecialty(doctor.specialty);
+          }
+          const today = getTodayDateString();
+          setSelectedDate(today);
+          dispatch(fetchTimeSlotsThunk({ doctorId: doctor.id, date: today }));
+          setStep(3); // Skip to date/time selection
+        } else {
+          setUrlDoctorError(t('Không tìm thấy bác sĩ theo yêu cầu. Vui lòng chọn bác sĩ từ danh sách.'));
         }
-        setStep(3); // Skip to date/time selection
-      } else {
-        setUrlDoctorError(t('Không tìm thấy bác sĩ theo yêu cầu. Vui lòng chọn bác sĩ từ danh sách.'));
+      }
+    } else if (targetSpecialtyId) {
+      if (specialties.length > 0) {
+        hasInitializedFromUrl.current = true;
+        const spec = specialties.find(s => s.id.toString() === targetSpecialtyId);
+        if (spec) {
+          setSelectedSpecialty(spec);
+          setStep(2);
+        }
       }
     }
-  }, [doctors, searchParams, selectedDoctor, step, t]);
+  }, [doctors, specialties, targetDoctorId, targetSpecialtyId, dispatch, t]);
 
   useEffect(() => {
     if (success) {
@@ -161,6 +189,10 @@ const AdminBooking = () => {
                     key={doc.id}
                     onClick={() => {
                       setSelectedDoctor(doc);
+                      const dateToUse = selectedDate || getTodayDateString();
+                      setSelectedDate(dateToUse);
+                      setSelectedTimeSlot(null);
+                      dispatch(fetchTimeSlotsThunk({ doctorId: doc.id, date: dateToUse }));
                       handleNextStep();
                     }}
                     className="p-6 border border-slate-200 rounded-2xl cursor-pointer hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10 transition-all flex items-start gap-4 bg-white group"
@@ -229,30 +261,36 @@ const AdminBooking = () => {
                   {t('booking.selectTimeSlot')}
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {timeSlots.map((slot: TimeSlot) => {
-                    const time = new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-                    const isSelected = selectedTimeSlot?.id === slot.id;
-                    return (
-                      <button
-                        key={slot.id}
-                        disabled={slot.booked}
-                        onClick={() => setSelectedTimeSlot(slot)}
-                        className={`py-3 px-4 rounded-xl font-medium text-center transition-all ${
-                          isSelected 
-                            ? 'bg-slate-900 text-white shadow-md transform scale-[1.02]' 
-                            : slot.booked
-                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-sm'
-                        }`}
-                      >
-                        {time} {slot.booked && <span className="block text-xs mt-0.5 font-normal">Đã kín</span>}
-                      </button>
-                    );
-                  })}
-                  {timeSlots.length === 0 && !loading && (
+                  {loading ? (
+                    <div className="col-span-2 sm:col-span-3 md:col-span-4 flex flex-col items-center justify-center py-10 gap-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+                      <span className="text-xs text-slate-400">Đang tải các khung giờ khám...</span>
+                    </div>
+                  ) : timeSlots.length === 0 ? (
                     <div className="col-span-2 sm:col-span-3 md:col-span-4 text-center py-8 text-slate-500 border border-dashed rounded-xl border-slate-300 bg-slate-50">
                       Bác sĩ chưa có lịch làm việc trong ngày này.
                     </div>
+                  ) : (
+                    timeSlots.map((slot: TimeSlot) => {
+                      const time = new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                      const isSelected = selectedTimeSlot?.id === slot.id;
+                      return (
+                        <button
+                          key={slot.id}
+                          disabled={slot.booked}
+                          onClick={() => setSelectedTimeSlot(slot)}
+                          className={`py-3 px-4 rounded-xl font-medium text-center transition-all ${
+                            isSelected 
+                              ? 'bg-slate-900 text-white shadow-md transform scale-[1.02]' 
+                              : slot.booked
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-sm'
+                          }`}
+                        >
+                          {time} {slot.booked && <span className="block text-xs mt-0.5 font-normal">Đã kín</span>}
+                        </button>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -357,7 +395,9 @@ const AdminBooking = () => {
     }
   };
 
-  if (loading && step === 1 && specialties.length === 0) {
+  const isDoctorLoadingFromUrl = Boolean(targetDoctorId && !selectedDoctor && !urlDoctorError);
+
+  if (isDoctorLoadingFromUrl || (loading && step === 1 && specialties.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
@@ -393,7 +433,15 @@ const AdminBooking = () => {
           
           <div className="relative z-10 flex justify-between">
             {[1, 2, 3, 4, 5].map(s => (
-              <div key={s} className="flex flex-col items-center gap-3">
+              <div 
+                key={s} 
+                onClick={() => {
+                  if (s < step) {
+                    setStep(s);
+                  }
+                }}
+                className={`flex flex-col items-center gap-3 ${s < step ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+              >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
                   step > s 
                     ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 ring-4 ring-white' 
